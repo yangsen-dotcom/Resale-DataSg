@@ -1,0 +1,8 @@
+### IntelliJ IDEA ###
+.idea/
+
+### Mac OS ###
+.DS_Store
+
+### Windows ###
+Thumbs.db

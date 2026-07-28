@@ -1,7 +1,7 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 COPY . .
 # Empty base URL -> requests resolve as same-origin relative paths, proxied by nginx below.
 ENV VITE_API_BASE_URL=""

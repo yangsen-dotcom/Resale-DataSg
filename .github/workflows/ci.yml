@@ -35,9 +35,15 @@ jobs:
           cache: npm
           cache-dependency-path: resale-datasg-frontend/package-lock.json
 
+      # npm ci demands the lock file exactly match what npm would resolve fresh.
+      # Vite ships rolldown's per-OS native bindings (plus a wasm32-wasi fallback
+      # pulling in @emnapi/*) as optionalDependencies, and npm resolves that
+      # subtree differently per host platform - a lock file generated on one OS
+      # isn't guaranteed to satisfy npm ci on another. npm install resolves fresh
+      # against package.json on the runner itself, sidestepping that drift.
       - name: Install dependencies
         working-directory: resale-datasg-frontend
-        run: npm ci
+        run: npm install
 
       - name: Lint
         working-directory: resale-datasg-frontend

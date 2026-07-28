@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { TownMap } from '../components/map/TownMap'
-import { TransactionTable } from '../components/table/TransactionTable'
-import { Pagination } from '../components/table/Pagination'
-import { LoadingState } from '../components/common/LoadingState'
-import { ErrorState } from '../components/common/ErrorState'
+import type { SortState, TransactionFilters } from '../api/types'
 import { EmptyState } from '../components/common/EmptyState'
-import { useTowns, useBlocks } from '../hooks/useFilterOptions'
+import { ErrorState } from '../components/common/ErrorState'
+import { LoadingState } from '../components/common/LoadingState'
+import { TownMap } from '../components/map/TownMap'
+import { Pagination } from '../components/table/Pagination'
+import { TransactionTable } from '../components/table/TransactionTable'
+import { useBlocks, useTowns } from '../hooks/useFilterOptions'
 import { useByTown } from '../hooks/useInsights'
 import { useTransactions } from '../hooks/useTransactions'
-import type { SortState, TransactionFilters } from '../api/types'
 
 const PAGE_SIZE = 20
 
@@ -67,7 +67,7 @@ export function MapPage() {
         <h1>Map</h1>
         <p className="pageSubtitle">
           Click a town on the map (or pick one below) to see its blocks, then pick a block to see its transactions.
-        </p>
+          </p>
       </div>
 
       {townsQuery.isLoading && <LoadingState label="Loading towns…" />}

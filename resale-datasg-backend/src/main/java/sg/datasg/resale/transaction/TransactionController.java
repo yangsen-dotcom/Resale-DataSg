@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.data.domain.Sort;
+import sg.datasg.resale.transaction.dto.BlockOptionResponse;
 import sg.datasg.resale.transaction.dto.PagedResponse;
 import sg.datasg.resale.transaction.dto.TransactionFilterRequest;
 import sg.datasg.resale.transaction.dto.TransactionResponse;
@@ -35,10 +36,11 @@ public class TransactionController {
         @RequestParam(required = false) BigDecimal maxPrice,
         @RequestParam(required = false) YearMonth fromMonth,
         @RequestParam(required = false) YearMonth toMonth,
+        @RequestParam(required = false) String block,
         @PageableDefault(size = 20, sort = "month", direction = Sort.Direction.DESC) Pageable pageable) {
 
         TransactionFilterRequest filter =
-            new TransactionFilterRequest(town, flatType, minPrice, maxPrice, fromMonth, toMonth);
+            new TransactionFilterRequest(town, flatType, minPrice, maxPrice, fromMonth, toMonth, block);
         Page<TransactionResponse> page = transactionService.list(filter, pageable);
         return PagedResponse.of(page);
     }
@@ -51,5 +53,10 @@ public class TransactionController {
     @GetMapping("/flat-types")
     public List<String> flatTypes() {
         return transactionService.distinctFlatTypes();
+    }
+
+    @GetMapping("/blocks")
+    public List<BlockOptionResponse> blocks(@RequestParam String town) {
+        return transactionService.distinctBlocks(town);
     }
 }

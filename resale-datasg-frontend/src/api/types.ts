@@ -47,6 +47,11 @@ export interface FlatTypeAveragePriceResponse {
   transactionCount: number
 }
 
+export interface BlockOptionResponse {
+  block: string
+  streetName: string
+}
+
 export interface TransactionFilters {
   town: string[]
   flatType: string[]
@@ -54,6 +59,7 @@ export interface TransactionFilters {
   maxPrice: string
   fromMonth: string
   toMonth: string
+  block?: string
 }
 
 export interface SortState {

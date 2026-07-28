@@ -13,6 +13,9 @@ export function AppHeader() {
           <NavLink to="/" end className={({ isActive }) => (isActive ? styles.activeLink : styles.link)}>
             Explore
           </NavLink>
+          <NavLink to="/map" className={({ isActive }) => (isActive ? styles.activeLink : styles.link)}>
+            Map
+          </NavLink>
           <NavLink to="/insights" className={({ isActive }) => (isActive ? styles.activeLink : styles.link)}>
             Insights
           </NavLink>

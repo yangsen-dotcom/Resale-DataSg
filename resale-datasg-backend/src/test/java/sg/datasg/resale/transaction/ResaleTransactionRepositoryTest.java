@@ -47,7 +47,7 @@ class ResaleTransactionRepositoryTest {
     void filtersByTownAndFlatType() {
         TransactionFilterRequest filter =
             new TransactionFilterRequest(java.util.List.of("BEDOK"), java.util.List.of("4 ROOM"), null, null, null,
-                null);
+                null, null);
 
         var page = repository.findAll(ResaleTransactionSpecification.fromFilter(filter),
             PageRequest.of(0, 10, Sort.by("month")));
@@ -60,12 +60,24 @@ class ResaleTransactionRepositoryTest {
     @Test
     void filtersByPriceRange() {
         TransactionFilterRequest filter = new TransactionFilterRequest(null, null,
-            new BigDecimal("450000"), new BigDecimal("510000"), null, null);
+            new BigDecimal("450000"), new BigDecimal("510000"), null, null, null);
 
         var page = repository.findAll(ResaleTransactionSpecification.fromFilter(filter), PageRequest.of(0, 10));
 
         assertThat(page.getTotalElements()).isEqualTo(1);
         assertThat(page.getContent().get(0).getResalePrice()).isEqualByComparingTo(new BigDecimal("500000"));
+    }
+
+    @Test
+    void filtersByBlock() {
+        repository.save(transaction("2023-03", "BEDOK", "4 ROOM", "999", "OTHER ST", new BigDecimal("600000")));
+
+        TransactionFilterRequest filter = new TransactionFilterRequest(null, null, null, null, null, null, "999");
+
+        var page = repository.findAll(ResaleTransactionSpecification.fromFilter(filter), PageRequest.of(0, 10));
+
+        assertThat(page.getTotalElements()).isEqualTo(1);
+        assertThat(page.getContent().get(0).getBlock()).isEqualTo("999");
     }
 
     @Test
@@ -78,9 +90,25 @@ class ResaleTransactionRepositoryTest {
         assertThat(repository.findDistinctFlatTypes()).containsExactly("3 ROOM", "4 ROOM");
     }
 
+    @Test
+    void findsDistinctBlocksByTown() {
+        repository.save(transaction("2023-03", "BEDOK", "5 ROOM", "789", "ANOTHER ST", new BigDecimal("600000")));
+
+        var blocks = repository.findDistinctBlocksByTown("BEDOK");
+
+        assertThat(blocks).extracting(ResaleTransactionRepository.BlockOption::getBlock)
+            .containsExactly("123", "789");
+        assertThat(blocks.get(1).getStreetName()).isEqualTo("ANOTHER ST");
+    }
+
     private ResaleTransaction transaction(String month, String town, String flatType, BigDecimal price) {
+        return transaction(month, town, flatType, "123", "SOME ST", price);
+    }
+
+    private ResaleTransaction transaction(String month, String town, String flatType, String block,
+        String streetName, BigDecimal price) {
         java.time.YearMonth ym = java.time.YearMonth.parse(month);
-        return new ResaleTransaction(ym.atDay(1), town, flatType, "123", "SOME ST", "01 TO 03",
+        return new ResaleTransaction(ym.atDay(1), town, flatType, block, streetName, "01 TO 03",
             new BigDecimal("90.0"), "Model A", (short) 1990, "65 years", price);
     }
 }

@@ -10,5 +10,6 @@ public record TransactionFilterRequest(
     BigDecimal minPrice,
     BigDecimal maxPrice,
     YearMonth fromMonth,
-    YearMonth toMonth) {
+    YearMonth toMonth,
+    String block) {
 }

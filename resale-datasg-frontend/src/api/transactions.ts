@@ -1,5 +1,5 @@
 import { fetchJson } from './client'
-import type { PagedResponse, SortState, TransactionFilters, TransactionResponse } from './types'
+import type { BlockOptionResponse, PagedResponse, SortState, TransactionFilters, TransactionResponse } from './types'
 
 export function getTransactions(
   filters: Partial<TransactionFilters>,
@@ -14,6 +14,7 @@ export function getTransactions(
     maxPrice: filters.maxPrice,
     fromMonth: filters.fromMonth,
     toMonth: filters.toMonth,
+    block: filters.block,
     page,
     size,
     sort: `${sort.field},${sort.direction}`,
@@ -26,4 +27,8 @@ export function getTowns(): Promise<string[]> {
 
 export function getFlatTypes(): Promise<string[]> {
   return fetchJson<string[]>('/api/transactions/flat-types')
+}
+
+export function getBlocks(town: string): Promise<BlockOptionResponse[]> {
+  return fetchJson<BlockOptionResponse[]>('/api/transactions/blocks', { town })
 }

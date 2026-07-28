@@ -36,6 +36,13 @@ export const handlers = [
     return HttpResponse.json(['2 ROOM', '3 ROOM', '4 ROOM'])
   }),
 
+  http.get(`${API_BASE_URL}/api/transactions/blocks`, () => {
+    return HttpResponse.json([
+      { block: '123', streetName: 'BEDOK NORTH RD' },
+      { block: '456', streetName: 'BEDOK SOUTH AVE' },
+    ])
+  }),
+
   http.get(`${API_BASE_URL}/api/insights/summary`, () => {
     return HttpResponse.json({
       totalTransactions: 193456,

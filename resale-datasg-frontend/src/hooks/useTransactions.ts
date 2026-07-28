@@ -7,10 +7,12 @@ export function useTransactions(
   page: number,
   size: number,
   sort: SortState,
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: ['transactions', filters, page, size, sort],
     queryFn: () => getTransactions(filters, page, size, sort),
     placeholderData: (previousData) => previousData,
+    enabled: options?.enabled ?? true,
   })
 }

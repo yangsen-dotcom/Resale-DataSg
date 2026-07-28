@@ -32,6 +32,9 @@ public final class ResaleTransactionSpecification {
             LocalDate to = filter.toMonth().atEndOfMonth();
             spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("month"), to));
         }
+        if (filter.block() != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("block"), filter.block()));
+        }
         return spec;
     }
 }

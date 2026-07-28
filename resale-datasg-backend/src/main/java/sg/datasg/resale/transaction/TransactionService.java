@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import sg.datasg.resale.transaction.dto.BlockOptionResponse;
 import sg.datasg.resale.transaction.dto.TransactionFilterRequest;
 import sg.datasg.resale.transaction.dto.TransactionResponse;
 
@@ -37,6 +38,13 @@ public class TransactionService {
     @Cacheable("flatTypes")
     public List<String> distinctFlatTypes() {
         return repository.findDistinctFlatTypes();
+    }
+
+    @Cacheable(value = "blocks", key = "#town")
+    public List<BlockOptionResponse> distinctBlocks(String town) {
+        return repository.findDistinctBlocksByTown(town).stream()
+            .map(b -> new BlockOptionResponse(b.getBlock(), b.getStreetName()))
+            .toList();
     }
 
     private void validateSort(Sort sort) {

@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
+import sg.datasg.resale.transaction.dto.BlockOptionResponse;
 import sg.datasg.resale.transaction.dto.TransactionResponse;
 
 @WebMvcTest(TransactionController.class)
@@ -67,5 +68,16 @@ class TransactionControllerTest {
         mockMvc.perform(get("/api/transactions/flat-types"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0]").value("2 ROOM"));
+    }
+
+    @Test
+    void blocksReturnsDistinctListForTown() throws Exception {
+        when(transactionService.distinctBlocks("BEDOK")).thenReturn(
+            List.of(new BlockOptionResponse("123", "BEDOK NORTH RD")));
+
+        mockMvc.perform(get("/api/transactions/blocks").param("town", "BEDOK"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].block").value("123"))
+            .andExpect(jsonPath("$[0].streetName").value("BEDOK NORTH RD"));
     }
 }

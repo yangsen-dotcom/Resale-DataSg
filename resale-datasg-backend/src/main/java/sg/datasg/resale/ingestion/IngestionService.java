@@ -93,7 +93,7 @@ public class IngestionService {
     }
 
     private void evictFilterOptionCaches() {
-        for (String cacheName : List.of("towns", "flatTypes")) {
+        for (String cacheName : List.of("towns", "flatTypes", "blocks")) {
             var cache = cacheManager.getCache(cacheName);
             if (cache != null) {
                 cache.clear();

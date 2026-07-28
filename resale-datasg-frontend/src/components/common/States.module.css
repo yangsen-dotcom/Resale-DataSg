@@ -1,0 +1,52 @@
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border-strong);
+  border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.icon {
+  color: var(--text-muted);
+}
+
+.iconDanger {
+  color: var(--danger);
+}
+
+.message {
+  font-size: 0.88rem;
+  max-width: 32ch;
+}
+
+.retryButton {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--danger);
+  background: var(--danger-wash);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+}
+
+.retryButton:hover {
+  border-color: var(--danger);
+}

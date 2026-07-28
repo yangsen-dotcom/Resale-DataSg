@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: resale_datasg
+      POSTGRES_USER: resale_datasg
+      POSTGRES_PASSWORD: resale_datasg
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resale_datasg"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    profiles: ["full"]
+    build:
+      context: ./resale-datasg-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/resale_datasg
+      DB_USERNAME: resale_datasg
+      DB_PASSWORD: resale_datasg
+      CORS_ALLOWED_ORIGIN: http://localhost:8081
+    ports:
+      - "9090:9090"
+
+  frontend:
+    profiles: ["full"]
+    build:
+      context: ./resale-datasg-frontend
+    depends_on:
+      - backend
+    ports:
+      - "8081:80"
+
+volumes:
+  pgdata:

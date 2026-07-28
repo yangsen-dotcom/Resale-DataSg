@@ -13,8 +13,9 @@ import sg.datasg.resale.transaction.dto.TransactionResponse;
 @Service
 public class TransactionService {
 
-    private static final Set<String> ALLOWED_SORT_FIELDS =
-        Set.of("month", "resalePrice", "floorAreaSqm", "town");
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+        "month", "town", "flatType", "block", "streetName", "storeyRange",
+        "floorAreaSqm", "remainingLease", "resalePrice");
 
     private final ResaleTransactionRepository repository;
 

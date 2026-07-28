@@ -46,7 +46,7 @@ class TransactionControllerTest {
     void invalidSortFieldReturns400() throws Exception {
         when(transactionService.list(any(), any())).thenThrow(new IllegalArgumentException("Invalid sort field"));
 
-        mockMvc.perform(get("/api/transactions").param("sort", "block,asc"))
+        mockMvc.perform(get("/api/transactions").param("sort", "flatModel,asc"))
             .andExpect(status().isBadRequest());
     }
 

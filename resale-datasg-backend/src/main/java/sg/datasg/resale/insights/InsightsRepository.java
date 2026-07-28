@@ -17,8 +17,8 @@ public interface InsightsRepository extends Repository<ResaleTransaction, Long> 
           min(resale_price) AS minPrice,
           max(resale_price) AS maxPrice
         FROM resale_transaction
-        WHERE (:town IS NULL OR town = :town)
-          AND (:flatType IS NULL OR flat_type = :flatType)
+        WHERE (CAST(:town AS varchar) IS NULL OR town = :town)
+          AND (CAST(:flatType AS varchar) IS NULL OR flat_type = :flatType)
         """)
     SummaryStatsProjection summaryStats(@Param("town") String town, @Param("flatType") String flatType);
 
@@ -31,8 +31,8 @@ public interface InsightsRepository extends Repository<ResaleTransaction, Long> 
         FROM (
           SELECT date_trunc(:unit, month) AS bucket, resale_price
           FROM resale_transaction
-          WHERE (:town IS NULL OR town = :town)
-            AND (:flatType IS NULL OR flat_type = :flatType)
+          WHERE (CAST(:town AS varchar) IS NULL OR town = :town)
+            AND (CAST(:flatType AS varchar) IS NULL OR flat_type = :flatType)
         ) bucketed
         GROUP BY bucket
         ORDER BY bucket
@@ -46,9 +46,9 @@ public interface InsightsRepository extends Repository<ResaleTransaction, Long> 
           avg(resale_price) AS averagePrice,
           count(*) AS transactionCount
         FROM resale_transaction
-        WHERE (:flatType IS NULL OR flat_type = :flatType)
-          AND (:fromMonth IS NULL OR month >= :fromMonth)
-          AND (:toMonth IS NULL OR month <= :toMonth)
+        WHERE (CAST(:flatType AS varchar) IS NULL OR flat_type = :flatType)
+          AND (CAST(:fromMonth AS date) IS NULL OR month >= :fromMonth)
+          AND (CAST(:toMonth AS date) IS NULL OR month <= :toMonth)
         GROUP BY town
         ORDER BY avg(resale_price) DESC
         """)
@@ -61,9 +61,9 @@ public interface InsightsRepository extends Repository<ResaleTransaction, Long> 
           avg(resale_price) AS averagePrice,
           count(*) AS transactionCount
         FROM resale_transaction
-        WHERE (:town IS NULL OR town = :town)
-          AND (:fromMonth IS NULL OR month >= :fromMonth)
-          AND (:toMonth IS NULL OR month <= :toMonth)
+        WHERE (CAST(:town AS varchar) IS NULL OR town = :town)
+          AND (CAST(:fromMonth AS date) IS NULL OR month >= :fromMonth)
+          AND (CAST(:toMonth AS date) IS NULL OR month <= :toMonth)
         GROUP BY flat_type
         ORDER BY avg(resale_price) DESC
         """)

@@ -11,13 +11,13 @@ interface Column {
 const COLUMNS: Column[] = [
   { key: 'month', label: 'Month', sortField: 'month' },
   { key: 'town', label: 'Town', sortField: 'town' },
-  { key: 'flatType', label: 'Flat Type' },
-  { key: 'block', label: 'Block' },
-  { key: 'streetName', label: 'Street' },
-  { key: 'storeyRange', label: 'Storey' },
+  { key: 'flatType', label: 'Flat Type', sortField: 'flatType' },
+  { key: 'block', label: 'Block', sortField: 'block' },
+  { key: 'streetName', label: 'Street', sortField: 'streetName' },
+  { key: 'storeyRange', label: 'Storey', sortField: 'storeyRange' },
   { key: 'floorAreaSqm', label: 'Area (sqm)', sortField: 'floorAreaSqm', numeric: true },
   { key: 'flatModel', label: 'Model' },
-  { key: 'remainingLease', label: 'Remaining Lease' },
+  { key: 'remainingLease', label: 'Remaining Lease', sortField: 'remainingLease' },
   { key: 'resalePrice', label: 'Resale Price (SGD)', sortField: 'resalePrice', numeric: true },
 ]
 

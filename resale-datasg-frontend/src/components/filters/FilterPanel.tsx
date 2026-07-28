@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFlatTypes, useTowns } from '../../hooks/useFilterOptions'
 import type { TransactionFilters } from '../../api/types'
 import styles from './FilterPanel.module.css'
@@ -35,6 +35,8 @@ const MONTH_OPTIONS = [
   { value: '12', label: 'December' },
 ]
 
+const THOUSANDS_FORMAT = new Intl.NumberFormat('en-US')
+
 function splitMonthValue(value: string): { year: string; month: string } {
   if (!value) {
     return { year: '', month: '' }
@@ -45,6 +47,14 @@ function splitMonthValue(value: string): { year: string; month: string } {
 
 function composeMonthValue(year: string, month: string): string {
   return year && month ? `${year}-${month}` : ''
+}
+
+function stripToDigits(value: string): string {
+  return value.replace(/\D/g, '')
+}
+
+function formatThousands(raw: string): string {
+  return raw ? THOUSANDS_FORMAT.format(Number(raw)) : ''
 }
 
 interface FilterPanelProps {
@@ -66,6 +76,30 @@ export function FilterPanel({
   const [minPrice, setMinPrice] = useState(filters.minPrice)
   const [maxPrice, setMaxPrice] = useState(filters.maxPrice)
 
+  useEffect(() => setMinPrice(filters.minPrice), [filters.minPrice])
+  useEffect(() => setMaxPrice(filters.maxPrice), [filters.maxPrice])
+
+  // Month/year pickers keep their own local state, independent of the composed
+  // "YYYY-MM" filter value - a partial pick (only month, or only year) has
+  // nowhere to live in that composed string, so deriving straight from it would
+  // reset the other dropdown to its placeholder the instant one is picked.
+  const [fromYear, setFromYear] = useState(() => splitMonthValue(filters.fromMonth).year)
+  const [fromMonthPart, setFromMonthPart] = useState(() => splitMonthValue(filters.fromMonth).month)
+  const [toYear, setToYear] = useState(() => splitMonthValue(filters.toMonth).year)
+  const [toMonthPart, setToMonthPart] = useState(() => splitMonthValue(filters.toMonth).month)
+
+  useEffect(() => {
+    const parts = splitMonthValue(filters.fromMonth)
+    setFromYear(parts.year)
+    setFromMonthPart(parts.month)
+  }, [filters.fromMonth])
+
+  useEffect(() => {
+    const parts = splitMonthValue(filters.toMonth)
+    setToYear(parts.year)
+    setToMonthPart(parts.month)
+  }, [filters.toMonth])
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   function debouncedChange(next: Partial<TransactionFilters>) {
@@ -81,17 +115,28 @@ export function FilterPanel({
     onChange({ [key]: next })
   }
 
-  const fromMonthParts = splitMonthValue(filters.fromMonth)
-  const toMonthParts = splitMonthValue(filters.toMonth)
-
   function handleFromMonthPartChange(part: 'year' | 'month', value: string) {
-    const next = { ...fromMonthParts, [part]: value }
-    onChange({ fromMonth: composeMonthValue(next.year, next.month) })
+    const nextYear = part === 'year' ? value : fromYear
+    const nextMonthPart = part === 'month' ? value : fromMonthPart
+    setFromYear(nextYear)
+    setFromMonthPart(nextMonthPart)
+    const composed = composeMonthValue(nextYear, nextMonthPart)
+    // Only push to the shared filter once a full "YYYY-MM" is formed, or to
+    // clear a previously-complete value - never with a partial selection.
+    if (composed || filters.fromMonth) {
+      onChange({ fromMonth: composed })
+    }
   }
 
   function handleToMonthPartChange(part: 'year' | 'month', value: string) {
-    const next = { ...toMonthParts, [part]: value }
-    onChange({ toMonth: composeMonthValue(next.year, next.month) })
+    const nextYear = part === 'year' ? value : toYear
+    const nextMonthPart = part === 'month' ? value : toMonthPart
+    setToYear(nextYear)
+    setToMonthPart(nextMonthPart)
+    const composed = composeMonthValue(nextYear, nextMonthPart)
+    if (composed || filters.toMonth) {
+      onChange({ toMonth: composed })
+    }
   }
 
   const hasActiveFilters =
@@ -162,24 +207,28 @@ export function FilterPanel({
           <legend>Price Range (SGD)</legend>
           <div className={styles.rangeRow}>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="Min"
               aria-label="Minimum price"
-              value={minPrice}
+              value={formatThousands(minPrice)}
               onChange={(e) => {
-                setMinPrice(e.target.value)
-                debouncedChange({ minPrice: e.target.value })
+                const raw = stripToDigits(e.target.value)
+                setMinPrice(raw)
+                debouncedChange({ minPrice: raw })
               }}
             />
             <span className={styles.rangeSeparator}>–</span>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="Max"
               aria-label="Maximum price"
-              value={maxPrice}
+              value={formatThousands(maxPrice)}
               onChange={(e) => {
-                setMaxPrice(e.target.value)
-                debouncedChange({ maxPrice: e.target.value })
+                const raw = stripToDigits(e.target.value)
+                setMaxPrice(raw)
+                debouncedChange({ maxPrice: raw })
               }}
             />
           </div>
@@ -191,7 +240,7 @@ export function FilterPanel({
             <div className={styles.monthYearGroup}>
               <select
                 aria-label="From month"
-                value={fromMonthParts.month}
+                value={fromMonthPart}
                 onChange={(e) => handleFromMonthPartChange('month', e.target.value)}
               >
                 <option value="">Month</option>
@@ -203,7 +252,7 @@ export function FilterPanel({
               </select>
               <select
                 aria-label="From year"
-                value={fromMonthParts.year}
+                value={fromYear}
                 onChange={(e) => handleFromMonthPartChange('year', e.target.value)}
               >
                 <option value="">Year</option>
@@ -218,7 +267,7 @@ export function FilterPanel({
             <div className={styles.monthYearGroup}>
               <select
                 aria-label="To month"
-                value={toMonthParts.month}
+                value={toMonthPart}
                 onChange={(e) => handleToMonthPartChange('month', e.target.value)}
               >
                 <option value="">Month</option>
@@ -230,7 +279,7 @@ export function FilterPanel({
               </select>
               <select
                 aria-label="To year"
-                value={toMonthParts.year}
+                value={toYear}
                 onChange={(e) => handleToMonthPartChange('year', e.target.value)}
               >
                 <option value="">Year</option>

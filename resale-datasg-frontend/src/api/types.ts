@@ -57,6 +57,15 @@ export interface TransactionFilters {
 }
 
 export interface SortState {
-  field: 'month' | 'resalePrice' | 'floorAreaSqm' | 'town'
+  field:
+    | 'month'
+    | 'town'
+    | 'flatType'
+    | 'block'
+    | 'streetName'
+    | 'storeyRange'
+    | 'floorAreaSqm'
+    | 'remainingLease'
+    | 'resalePrice'
   direction: 'asc' | 'desc'
 }

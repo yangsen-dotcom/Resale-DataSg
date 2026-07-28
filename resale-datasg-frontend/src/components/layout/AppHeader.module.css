@@ -8,12 +8,12 @@
 }
 
 .inner {
-  max-width: 1080px;
+  max-width: 1600px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.85rem var(--space-5);
+  padding: 0.85rem var(--space-6);
 }
 
 .brand {

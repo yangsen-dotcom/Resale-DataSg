@@ -9,14 +9,15 @@ import { useFilterState } from '../state/useFilterState'
 import { useTransactions } from '../hooks/useTransactions'
 import type { SortState } from '../api/types'
 
-const PAGE_SIZE = 20
+const DEFAULT_PAGE_SIZE = 20
 
 export function ExplorePage() {
   const { filters, setFilters } = useFilterState()
   const [page, setPage] = useState(0)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [sort, setSort] = useState<SortState>({ field: 'month', direction: 'desc' })
 
-  const query = useTransactions(filters, page, PAGE_SIZE, sort)
+  const query = useTransactions(filters, page, pageSize, sort)
 
   function handleFilterChange(next: Parameters<typeof setFilters>[0]) {
     setPage(0)
@@ -30,6 +31,11 @@ export function ExplorePage() {
         ? { field, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
         : { field, direction: 'desc' },
     )
+  }
+
+  function handlePageSizeChange(size: number) {
+    setPage(0)
+    setPageSize(size)
   }
 
   return (
@@ -60,8 +66,9 @@ export function ExplorePage() {
             page={query.data.page}
             totalPages={query.data.totalPages}
             totalElements={query.data.totalElements}
-            size={PAGE_SIZE}
+            size={pageSize}
             onPageChange={setPage}
+            onSizeChange={handlePageSizeChange}
           />
         </>
       )}

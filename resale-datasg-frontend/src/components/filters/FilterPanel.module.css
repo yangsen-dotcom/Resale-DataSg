@@ -122,3 +122,20 @@
 .rangeSeparator {
   color: var(--text-muted);
 }
+
+.monthYearGroup {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.monthYearGroup select {
+  min-width: 0;
+}
+
+.monthYearGroup select:first-child {
+  width: 118px;
+}
+
+.monthYearGroup select:last-child {
+  width: 88px;
+}

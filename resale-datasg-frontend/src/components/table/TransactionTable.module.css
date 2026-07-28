@@ -71,11 +71,32 @@
 
 .pagination {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-3);
   padding: var(--space-3) var(--space-1) 0;
   font-size: 0.83rem;
   color: var(--text-secondary);
+}
+
+.paginationSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.pageSizeLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+}
+
+.pageSizeLabel select {
+  padding: 0.25rem 0.45rem;
+  font-size: 0.83rem;
 }
 
 .paginationControls {

@@ -1,7 +1,13 @@
 .appContainer {
-  max-width: 1080px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: var(--space-6) var(--space-5) var(--space-6);
+  padding: var(--space-6) var(--space-6) var(--space-6);
+}
+
+@media (max-width: 640px) {
+  .appContainer {
+    padding: var(--space-5) var(--space-4) var(--space-5);
+  }
 }
 
 .pageHeader {

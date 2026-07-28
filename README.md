@@ -120,8 +120,14 @@ reference. Summary:
 | GET | `/api/transactions` | Paginated, filterable transaction listing (town, flat type, price range, month range, sort) |
 | GET | `/api/transactions/towns` | Distinct towns, for filter dropdowns |
 | GET | `/api/transactions/flat-types` | Distinct flat types, for filter dropdowns |
+| GET | `/api/transactions/blocks` | Distinct blocks (+ street name) for a given town |
 | GET | `/api/insights/summary` | Total count, average/median/min/max price |
 | GET | `/api/insights/price-trend` | Average price over time, grouped by month or year |
+| GET | `/api/insights/price-trend-by-town` | Average price per year (or month), grouped by town — powers the Insights page's town comparison chart |
+| GET | `/api/insights/price-trend-by-flat-type` | Average price per year (or month), grouped by flat type — powers the Insights page's flat type comparison chart |
+| GET | `/api/insights/max-price-trend-by-town` | Highest resale price per year (or month), grouped by town — powers the Insights page's "Highest Price" view under Towns |
+| GET | `/api/insights/min-price-trend-by-town` | Lowest resale price per year (or month), grouped by town — powers the Insights page's "Lowest Price" view under Towns |
+| GET | `/api/insights/average-price-by-remaining-lease` | Average price grouped by remaining lease (whole years) — powers the Insights page's remaining lease chart |
 | GET | `/api/insights/by-town` | Average price and count, grouped by town |
 | GET | `/api/insights/by-flat-type` | Average price and count, grouped by flat type |
 | POST | `/api/admin/ingest` | Manually trigger a full re-ingest from data.gov.sg |

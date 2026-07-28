@@ -8,9 +8,14 @@ import java.util.List;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 import sg.datasg.resale.insights.dto.FlatTypeAveragePriceResponse;
+import sg.datasg.resale.insights.dto.FlatTypePriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.PriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.RemainingLeasePriceResponse;
 import sg.datasg.resale.insights.dto.SummaryStatsResponse;
 import sg.datasg.resale.insights.dto.TownAveragePriceResponse;
+import sg.datasg.resale.insights.dto.TownMaxPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.TownPriceTrendPointResponse;
 
 @Service
 public class InsightsService {
@@ -40,6 +45,57 @@ public class InsightsService {
         }
         return repository.priceTrend(unit, town, flatType).stream()
             .map(p -> new PriceTrendPointResponse(p.getPeriod(), round(p.getAveragePrice()), p.getTransactionCount()))
+            .toList();
+    }
+
+    public List<TownPriceTrendPointResponse> priceTrendByTown(String groupBy) {
+        String unit = groupBy == null ? "year" : groupBy.toLowerCase();
+        if (!ALLOWED_GROUP_BY.contains(unit)) {
+            throw new IllegalArgumentException("Invalid groupBy '" + groupBy + "'. Allowed: " + ALLOWED_GROUP_BY);
+        }
+        return repository.priceTrendByTown(unit).stream()
+            .map(p -> new TownPriceTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getAveragePrice()),
+                p.getTransactionCount()))
+            .toList();
+    }
+
+    public List<FlatTypePriceTrendPointResponse> priceTrendByFlatType(String groupBy) {
+        String unit = groupBy == null ? "year" : groupBy.toLowerCase();
+        if (!ALLOWED_GROUP_BY.contains(unit)) {
+            throw new IllegalArgumentException("Invalid groupBy '" + groupBy + "'. Allowed: " + ALLOWED_GROUP_BY);
+        }
+        return repository.priceTrendByFlatType(unit).stream()
+            .map(p -> new FlatTypePriceTrendPointResponse(p.getFlatType(), p.getPeriod(), round(p.getAveragePrice()),
+                p.getTransactionCount()))
+            .toList();
+    }
+
+    public List<TownMaxPriceTrendPointResponse> maxPriceTrendByTown(String groupBy) {
+        String unit = groupBy == null ? "year" : groupBy.toLowerCase();
+        if (!ALLOWED_GROUP_BY.contains(unit)) {
+            throw new IllegalArgumentException("Invalid groupBy '" + groupBy + "'. Allowed: " + ALLOWED_GROUP_BY);
+        }
+        return repository.maxPriceTrendByTown(unit).stream()
+            .map(p -> new TownMaxPriceTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getMaxPrice()),
+                p.getTransactionCount()))
+            .toList();
+    }
+
+    public List<TownMinPriceTrendPointResponse> minPriceTrendByTown(String groupBy) {
+        String unit = groupBy == null ? "year" : groupBy.toLowerCase();
+        if (!ALLOWED_GROUP_BY.contains(unit)) {
+            throw new IllegalArgumentException("Invalid groupBy '" + groupBy + "'. Allowed: " + ALLOWED_GROUP_BY);
+        }
+        return repository.minPriceTrendByTown(unit).stream()
+            .map(p -> new TownMinPriceTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getMinPrice()),
+                p.getTransactionCount()))
+            .toList();
+    }
+
+    public List<RemainingLeasePriceResponse> averagePriceByRemainingLease() {
+        return repository.averagePriceByRemainingLease().stream()
+            .map(p -> new RemainingLeasePriceResponse(p.getRemainingLeaseYears(), round(p.getAveragePrice()),
+                p.getTransactionCount()))
             .toList();
     }
 

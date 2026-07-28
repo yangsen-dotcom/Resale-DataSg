@@ -1,6 +1,7 @@
 package sg.datasg.resale.insights;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 import java.math.BigDecimal;
 import java.time.YearMonth;
@@ -85,6 +86,69 @@ class InsightsRepositoryTest {
         assertThat(trend).hasSize(1);
         assertThat(trend.get(0).getPeriod()).isEqualTo("2023");
         assertThat(trend.get(0).getTransactionCount()).isEqualTo(4);
+    }
+
+    @Test
+    void priceTrendByTownGroupsByTownAndYear() {
+        var trend = insightsRepository.priceTrendByTown("year");
+
+        assertThat(trend).hasSize(2);
+        assertThat(trend.get(0).getTown()).isEqualTo("BEDOK");
+        assertThat(trend.get(0).getPeriod()).isEqualTo("2023");
+        assertThat(trend.get(0).getTransactionCount()).isEqualTo(3);
+        assertThat(trend.get(0).getAveragePrice()).isEqualByComparingTo(new BigDecimal("200000"));
+        assertThat(trend.get(1).getTown()).isEqualTo("TAMPINES");
+        assertThat(trend.get(1).getAveragePrice()).isEqualByComparingTo(new BigDecimal("400000"));
+    }
+
+    @Test
+    void priceTrendByFlatTypeGroupsByFlatTypeAndYear() {
+        var trend = insightsRepository.priceTrendByFlatType("year");
+
+        assertThat(trend).hasSize(2);
+        assertThat(trend.get(0).getFlatType()).isEqualTo("3 ROOM");
+        assertThat(trend.get(0).getPeriod()).isEqualTo("2023");
+        assertThat(trend.get(0).getTransactionCount()).isEqualTo(1);
+        assertThat(trend.get(0).getAveragePrice()).isEqualByComparingTo(new BigDecimal("300000"));
+        assertThat(trend.get(1).getFlatType()).isEqualTo("4 ROOM");
+        assertThat(trend.get(1).getTransactionCount()).isEqualTo(3);
+        assertThat(trend.get(1).getAveragePrice().doubleValue()).isCloseTo(233333.33, within(1.0));
+    }
+
+    @Test
+    void maxPriceTrendByTownGroupsByTownAndYear() {
+        var trend = insightsRepository.maxPriceTrendByTown("year");
+
+        assertThat(trend).hasSize(2);
+        assertThat(trend.get(0).getTown()).isEqualTo("BEDOK");
+        assertThat(trend.get(0).getPeriod()).isEqualTo("2023");
+        assertThat(trend.get(0).getTransactionCount()).isEqualTo(3);
+        assertThat(trend.get(0).getMaxPrice()).isEqualByComparingTo(new BigDecimal("300000"));
+        assertThat(trend.get(1).getTown()).isEqualTo("TAMPINES");
+        assertThat(trend.get(1).getMaxPrice()).isEqualByComparingTo(new BigDecimal("400000"));
+    }
+
+    @Test
+    void minPriceTrendByTownGroupsByTownAndYear() {
+        var trend = insightsRepository.minPriceTrendByTown("year");
+
+        assertThat(trend).hasSize(2);
+        assertThat(trend.get(0).getTown()).isEqualTo("BEDOK");
+        assertThat(trend.get(0).getPeriod()).isEqualTo("2023");
+        assertThat(trend.get(0).getTransactionCount()).isEqualTo(3);
+        assertThat(trend.get(0).getMinPrice()).isEqualByComparingTo(new BigDecimal("100000"));
+        assertThat(trend.get(1).getTown()).isEqualTo("TAMPINES");
+        assertThat(trend.get(1).getMinPrice()).isEqualByComparingTo(new BigDecimal("400000"));
+    }
+
+    @Test
+    void averagePriceByRemainingLeaseParsesWholeYearsFromLeaseString() {
+        var byRemainingLease = insightsRepository.averagePriceByRemainingLease();
+
+        assertThat(byRemainingLease).hasSize(1);
+        assertThat(byRemainingLease.get(0).getRemainingLeaseYears()).isEqualTo(65);
+        assertThat(byRemainingLease.get(0).getTransactionCount()).isEqualTo(4);
+        assertThat(byRemainingLease.get(0).getAveragePrice()).isEqualByComparingTo(new BigDecimal("250000"));
     }
 
     @Test

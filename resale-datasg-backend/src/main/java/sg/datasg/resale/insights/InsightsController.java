@@ -8,9 +8,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import sg.datasg.resale.insights.dto.FlatTypeAveragePriceResponse;
+import sg.datasg.resale.insights.dto.FlatTypePriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.PriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.RemainingLeasePriceResponse;
 import sg.datasg.resale.insights.dto.SummaryStatsResponse;
 import sg.datasg.resale.insights.dto.TownAveragePriceResponse;
+import sg.datasg.resale.insights.dto.TownMaxPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.TownPriceTrendPointResponse;
 
 @RestController
 @RequestMapping("/api/insights")
@@ -36,6 +41,35 @@ public class InsightsController {
         @RequestParam(required = false) String town,
         @RequestParam(required = false) String flatType) {
         return insightsService.priceTrend(groupBy, town, flatType);
+    }
+
+    @GetMapping("/price-trend-by-town")
+    public List<TownPriceTrendPointResponse> priceTrendByTown(
+        @RequestParam(required = false, defaultValue = "year") String groupBy) {
+        return insightsService.priceTrendByTown(groupBy);
+    }
+
+    @GetMapping("/price-trend-by-flat-type")
+    public List<FlatTypePriceTrendPointResponse> priceTrendByFlatType(
+        @RequestParam(required = false, defaultValue = "year") String groupBy) {
+        return insightsService.priceTrendByFlatType(groupBy);
+    }
+
+    @GetMapping("/max-price-trend-by-town")
+    public List<TownMaxPriceTrendPointResponse> maxPriceTrendByTown(
+        @RequestParam(required = false, defaultValue = "year") String groupBy) {
+        return insightsService.maxPriceTrendByTown(groupBy);
+    }
+
+    @GetMapping("/min-price-trend-by-town")
+    public List<TownMinPriceTrendPointResponse> minPriceTrendByTown(
+        @RequestParam(required = false, defaultValue = "year") String groupBy) {
+        return insightsService.minPriceTrendByTown(groupBy);
+    }
+
+    @GetMapping("/average-price-by-remaining-lease")
+    public List<RemainingLeasePriceResponse> averagePriceByRemainingLease() {
+        return insightsService.averagePriceByRemainingLease();
     }
 
     @GetMapping("/by-town")

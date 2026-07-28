@@ -43,6 +43,81 @@ public interface InsightsRepository extends Repository<ResaleTransaction, Long> 
     @Query(nativeQuery = true, value = """
         SELECT
           town AS town,
+          CASE WHEN :unit = 'year' THEN to_char(bucket, 'YYYY')
+               ELSE to_char(bucket, 'YYYY-MM') END AS period,
+          avg(resale_price) AS averagePrice,
+          count(*) AS transactionCount
+        FROM (
+          SELECT town, date_trunc(:unit, month) AS bucket, resale_price
+          FROM resale_transaction
+        ) bucketed
+        GROUP BY town, bucket
+        ORDER BY town, bucket
+        """)
+    List<TownPriceTrendProjection> priceTrendByTown(@Param("unit") String unit);
+
+    @Query(nativeQuery = true, value = """
+        SELECT
+          town AS town,
+          CASE WHEN :unit = 'year' THEN to_char(bucket, 'YYYY')
+               ELSE to_char(bucket, 'YYYY-MM') END AS period,
+          max(resale_price) AS maxPrice,
+          count(*) AS transactionCount
+        FROM (
+          SELECT town, date_trunc(:unit, month) AS bucket, resale_price
+          FROM resale_transaction
+        ) bucketed
+        GROUP BY town, bucket
+        ORDER BY town, bucket
+        """)
+    List<TownMaxPriceTrendProjection> maxPriceTrendByTown(@Param("unit") String unit);
+
+    @Query(nativeQuery = true, value = """
+        SELECT
+          town AS town,
+          CASE WHEN :unit = 'year' THEN to_char(bucket, 'YYYY')
+               ELSE to_char(bucket, 'YYYY-MM') END AS period,
+          min(resale_price) AS minPrice,
+          count(*) AS transactionCount
+        FROM (
+          SELECT town, date_trunc(:unit, month) AS bucket, resale_price
+          FROM resale_transaction
+        ) bucketed
+        GROUP BY town, bucket
+        ORDER BY town, bucket
+        """)
+    List<TownMinPriceTrendProjection> minPriceTrendByTown(@Param("unit") String unit);
+
+    @Query(nativeQuery = true, value = """
+        SELECT
+          flat_type AS flatType,
+          CASE WHEN :unit = 'year' THEN to_char(bucket, 'YYYY')
+               ELSE to_char(bucket, 'YYYY-MM') END AS period,
+          avg(resale_price) AS averagePrice,
+          count(*) AS transactionCount
+        FROM (
+          SELECT flat_type, date_trunc(:unit, month) AS bucket, resale_price
+          FROM resale_transaction
+        ) bucketed
+        GROUP BY flat_type, bucket
+        ORDER BY flat_type, bucket
+        """)
+    List<FlatTypePriceTrendProjection> priceTrendByFlatType(@Param("unit") String unit);
+
+    @Query(nativeQuery = true, value = """
+        SELECT
+          split_part(remaining_lease, ' ', 1)::int AS remainingLeaseYears,
+          avg(resale_price) AS averagePrice,
+          count(*) AS transactionCount
+        FROM resale_transaction
+        GROUP BY remainingLeaseYears
+        ORDER BY remainingLeaseYears
+        """)
+    List<RemainingLeaseProjection> averagePriceByRemainingLease();
+
+    @Query(nativeQuery = true, value = """
+        SELECT
+          town AS town,
           avg(resale_price) AS averagePrice,
           count(*) AS transactionCount
         FROM resale_transaction

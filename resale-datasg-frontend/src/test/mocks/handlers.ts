@@ -43,28 +43,47 @@ export const handlers = [
     ])
   }),
 
-  http.get(`${API_BASE_URL}/api/insights/summary`, () => {
-    return HttpResponse.json({
-      totalTransactions: 193456,
-      averagePrice: 512340.55,
-      medianPrice: 495000,
-      minPrice: 140000,
-      maxPrice: 1580000,
-    })
+  http.get(`${API_BASE_URL}/api/insights/price-trend-by-town`, () => {
+    return HttpResponse.json([
+      { town: 'ANG MO KIO', period: '2023', averagePrice: 450000, transactionCount: 3000 },
+      { town: 'BEDOK', period: '2023', averagePrice: 498000, transactionCount: 5230 },
+      { town: 'TAMPINES', period: '2023', averagePrice: 520000, transactionCount: 4100 },
+    ])
   }),
 
-  http.get(`${API_BASE_URL}/api/insights/price-trend`, () => {
+  http.get(`${API_BASE_URL}/api/insights/price-trend-by-flat-type`, () => {
     return HttpResponse.json([
-      { period: '2023-05', averagePrice: 500000, transactionCount: 800 },
-      { period: '2023-06', averagePrice: 512000, transactionCount: 812 },
+      { flatType: '2 ROOM', period: '2023', averagePrice: 300000, transactionCount: 800 },
+      { flatType: '3 ROOM', period: '2023', averagePrice: 380000, transactionCount: 2100 },
+      { flatType: '4 ROOM', period: '2023', averagePrice: 498000, transactionCount: 5230 },
+    ])
+  }),
+
+  http.get(`${API_BASE_URL}/api/insights/max-price-trend-by-town`, () => {
+    return HttpResponse.json([
+      { town: 'ANG MO KIO', period: '2023', maxPrice: 760000, transactionCount: 3000 },
+      { town: 'BEDOK', period: '2023', maxPrice: 880000, transactionCount: 5230 },
+      { town: 'TAMPINES', period: '2023', maxPrice: 910000, transactionCount: 4100 },
+    ])
+  }),
+
+  http.get(`${API_BASE_URL}/api/insights/min-price-trend-by-town`, () => {
+    return HttpResponse.json([
+      { town: 'ANG MO KIO', period: '2023', minPrice: 260000, transactionCount: 3000 },
+      { town: 'BEDOK', period: '2023', minPrice: 280000, transactionCount: 5230 },
+      { town: 'TAMPINES', period: '2023', minPrice: 300000, transactionCount: 4100 },
+    ])
+  }),
+
+  http.get(`${API_BASE_URL}/api/insights/average-price-by-remaining-lease`, () => {
+    return HttpResponse.json([
+      { remainingLeaseYears: 60, averagePrice: 400000, transactionCount: 1200 },
+      { remainingLeaseYears: 61, averagePrice: 420000, transactionCount: 900 },
+      { remainingLeaseYears: 62, averagePrice: 440000, transactionCount: 700 },
     ])
   }),
 
   http.get(`${API_BASE_URL}/api/insights/by-town`, () => {
     return HttpResponse.json([{ town: 'BEDOK', averagePrice: 498000, transactionCount: 5230 }])
-  }),
-
-  http.get(`${API_BASE_URL}/api/insights/by-flat-type`, () => {
-    return HttpResponse.json([{ flatType: '4 ROOM', averagePrice: 480000, transactionCount: 60210 }])
   }),
 ]

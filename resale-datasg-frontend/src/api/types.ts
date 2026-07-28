@@ -21,28 +21,42 @@ export interface PagedResponse<T> {
   totalPages: number
 }
 
-export interface SummaryStatsResponse {
-  totalTransactions: number
+export interface TownPriceTrendPointResponse {
+  town: string
+  period: string
   averagePrice: number
-  medianPrice: number
-  minPrice: number
-  maxPrice: number
+  transactionCount: number
 }
 
-export interface PriceTrendPointResponse {
+export interface TownMaxPriceTrendPointResponse {
+  town: string
   period: string
+  maxPrice: number
+  transactionCount: number
+}
+
+export interface TownMinPriceTrendPointResponse {
+  town: string
+  period: string
+  minPrice: number
+  transactionCount: number
+}
+
+export interface FlatTypePriceTrendPointResponse {
+  flatType: string
+  period: string
+  averagePrice: number
+  transactionCount: number
+}
+
+export interface RemainingLeasePriceResponse {
+  remainingLeaseYears: number
   averagePrice: number
   transactionCount: number
 }
 
 export interface TownAveragePriceResponse {
   town: string
-  averagePrice: number
-  transactionCount: number
-}
-
-export interface FlatTypeAveragePriceResponse {
-  flatType: string
   averagePrice: number
   transactionCount: number
 }

@@ -1,9 +1,11 @@
 import { fetchJson } from './client'
 import type {
-  FlatTypeAveragePriceResponse,
-  PriceTrendPointResponse,
-  SummaryStatsResponse,
+  FlatTypePriceTrendPointResponse,
+  RemainingLeasePriceResponse,
   TownAveragePriceResponse,
+  TownMaxPriceTrendPointResponse,
+  TownMinPriceTrendPointResponse,
+  TownPriceTrendPointResponse,
 } from './types'
 
 export interface InsightsFilterParams {
@@ -13,25 +15,28 @@ export interface InsightsFilterParams {
   toMonth?: string
 }
 
-export function getSummary(params: Pick<InsightsFilterParams, 'town' | 'flatType'>): Promise<SummaryStatsResponse> {
-  return fetchJson<SummaryStatsResponse>('/api/insights/summary', params)
+export function getPriceTrendByTown(groupBy: 'month' | 'year'): Promise<TownPriceTrendPointResponse[]> {
+  return fetchJson<TownPriceTrendPointResponse[]>('/api/insights/price-trend-by-town', { groupBy })
 }
 
-export function getPriceTrend(
-  groupBy: 'month' | 'year',
-  params: Pick<InsightsFilterParams, 'town' | 'flatType'>,
-): Promise<PriceTrendPointResponse[]> {
-  return fetchJson<PriceTrendPointResponse[]>('/api/insights/price-trend', { groupBy, ...params })
+export function getPriceTrendByFlatType(groupBy: 'month' | 'year'): Promise<FlatTypePriceTrendPointResponse[]> {
+  return fetchJson<FlatTypePriceTrendPointResponse[]>('/api/insights/price-trend-by-flat-type', { groupBy })
+}
+
+export function getMaxPriceTrendByTown(groupBy: 'month' | 'year'): Promise<TownMaxPriceTrendPointResponse[]> {
+  return fetchJson<TownMaxPriceTrendPointResponse[]>('/api/insights/max-price-trend-by-town', { groupBy })
+}
+
+export function getMinPriceTrendByTown(groupBy: 'month' | 'year'): Promise<TownMinPriceTrendPointResponse[]> {
+  return fetchJson<TownMinPriceTrendPointResponse[]>('/api/insights/min-price-trend-by-town', { groupBy })
+}
+
+export function getAveragePriceByRemainingLease(): Promise<RemainingLeasePriceResponse[]> {
+  return fetchJson<RemainingLeasePriceResponse[]>('/api/insights/average-price-by-remaining-lease')
 }
 
 export function getByTown(
   params: Pick<InsightsFilterParams, 'flatType' | 'fromMonth' | 'toMonth'>,
 ): Promise<TownAveragePriceResponse[]> {
   return fetchJson<TownAveragePriceResponse[]>('/api/insights/by-town', params)
-}
-
-export function getByFlatType(
-  params: Pick<InsightsFilterParams, 'town' | 'fromMonth' | 'toMonth'>,
-): Promise<FlatTypeAveragePriceResponse[]> {
-  return fetchJson<FlatTypeAveragePriceResponse[]>('/api/insights/by-flat-type', params)
 }

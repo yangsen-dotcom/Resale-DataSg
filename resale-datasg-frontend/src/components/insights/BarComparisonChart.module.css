@@ -1,0 +1,52 @@
+.wrapper {
+  border: 1px solid var(--border, #e2e2e2);
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: var(--chart-surface, #fcfcfb);
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gridline {
+  stroke: var(--gridline, #e1e0d9);
+  stroke-width: 1;
+}
+
+.baseline {
+  stroke: var(--baseline, #c3c2b7);
+  stroke-width: 1;
+}
+
+.axisLabel {
+  font-size: 10px;
+  fill: var(--text-muted, #898781);
+}
+
+.valueLabel {
+  font-size: 10px;
+  fill: var(--text-secondary, #52514e);
+}
+
+.bar {
+  fill: var(--series-1, #2a78d6);
+}
+
+.barHover {
+  fill: var(--series-1, #2a78d6);
+  opacity: 0.85;
+}
+
+.empty {
+  color: var(--text-muted, #898781);
+  font-size: 0.85rem;
+}
+
+.note {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted, #898781);
+}

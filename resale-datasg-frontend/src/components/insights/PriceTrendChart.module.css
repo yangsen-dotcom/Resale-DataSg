@@ -1,0 +1,81 @@
+.wrapper {
+  position: relative;
+  border: 1px solid var(--border, #e2e2e2);
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: var(--chart-surface, #fcfcfb);
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gridline {
+  stroke: var(--gridline, #e1e0d9);
+  stroke-width: 1;
+}
+
+.baseline {
+  stroke: var(--baseline, #c3c2b7);
+  stroke-width: 1;
+}
+
+.axisLabel {
+  font-size: 10px;
+  fill: var(--text-muted, #898781);
+}
+
+.line {
+  fill: none;
+  stroke: var(--series-1, #2a78d6);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.area {
+  fill: var(--series-1-wash, rgba(42, 120, 214, 0.1));
+  stroke: none;
+}
+
+.crosshair {
+  stroke: var(--text-muted, #898781);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.endDot {
+  fill: var(--series-1, #2a78d6);
+  stroke: var(--chart-surface, #fcfcfb);
+  stroke-width: 2;
+}
+
+.tooltip {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: var(--chart-surface, #fcfcfb);
+  border: 1px solid var(--border, #e2e2e2);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  pointer-events: none;
+}
+
+.tooltip strong {
+  color: var(--text-primary, #0b0b0b);
+}
+
+.tooltip span {
+  color: var(--text-secondary, #52514e);
+}
+
+.empty {
+  color: var(--text-muted, #898781);
+  font-size: 0.85rem;
+}

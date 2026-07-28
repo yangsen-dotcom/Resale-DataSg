@@ -1,0 +1,105 @@
+.tableWrapper {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+
+.table th,
+.table td {
+  padding: 0.55rem 0.85rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  border-top: 1px solid var(--border);
+  transition: background 0.1s ease;
+}
+
+.table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--text-primary) 2.5%, transparent);
+}
+
+.table tbody tr:hover {
+  background: var(--accent-wash);
+}
+
+.table thead th {
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  position: sticky;
+  top: 0;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.numericCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sortButton {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  display: inline-flex;
+}
+
+.sortButton:hover {
+  color: var(--text-primary);
+}
+
+.sortIndicator {
+  color: var(--accent);
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-1) 0;
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.paginationButton {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.paginationButton:not(:disabled):hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.paginationButton:disabled {
+  opacity: 0.4;
+}

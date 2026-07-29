@@ -7,11 +7,30 @@ transactions, sourced live from [data.gov.sg](https://data.gov.sg).
 
 ```
 Resale-DataSg/
-├── resale-datasg-backend/   # Spring Boot REST API (Java, Maven)
-├── resale-datasg-frontend/  # React + TypeScript SPA (Vite)
-├── infra/terraform/         # AWS infrastructure as code (never applied — see its README)
-├── docker-compose.yml       # Local Postgres, plus an optional full-stack container profile
-└── .github/workflows/ci.yml # Build + test both projects, validate Terraform
+├── resale-datasg-backend/            # Spring Boot REST API (Java, Maven)
+│   ├── src/main/java/sg/datasg/resale/
+│   │   ├── common/                   # Global exception handling (ProblemDetail), shared exceptions
+│   │   ├── config/                   # Cache, CORS/web, OpenAPI, ingestion, REST client config
+│   │   ├── ingestion/                # data.gov.sg client, startup + on-demand ingestion
+│   │   ├── insights/                 # Aggregate/chart endpoints (repository, service, cache names, DTOs)
+│   │   └── transaction/              # Transaction listing, filtering, sorting
+│   ├── src/main/resources/
+│   │   ├── application.yml
+│   │   └── db/migration/             # Flyway schema + index migrations
+│   └── Dockerfile
+├── resale-datasg-frontend/           # React + TypeScript SPA (Vite)
+│   ├── src/
+│   │   ├── api/                      # fetch wrappers + response types
+│   │   ├── components/               # Explore/Insights/Map/common presentational components
+│   │   ├── data/                     # Static town-centroid coordinates for the map
+│   │   ├── hooks/                    # TanStack Query hooks
+│   │   ├── pages/                    # ExplorePage, InsightsPage, MapPage
+│   │   ├── state/                    # In-memory filter state (not URL-persisted)
+│   │   └── styles/                   # Design tokens
+│   └── Dockerfile
+├── infra/terraform/                  # AWS infrastructure as code (never applied — see its README)
+├── docker-compose.yml                # Local Postgres + Redis, plus an optional full-stack container profile
+└── .github/workflows/ci.yml          # Build + test both projects, validate Terraform
 ```
 
 ## Architecture
@@ -75,7 +94,7 @@ The Insights chart endpoints are additionally cached in Redis (see
 | Frontend | React + TypeScript + Vite | Fast dev loop; already scaffolded |
 | Server state | TanStack Query | Caching, loading/error states, refetch-on-filter-change, without hand-rolled `useEffect` fetching |
 | Routing | react-router-dom | Three pages (Explore, Insights, Map); filter/selection state is kept in memory, not the URL — picking a filter re-fetches and updates in place instead of navigating |
-| Backend tests | JUnit 5, Mockito, Testcontainers (Postgres) | Real Postgres-specific SQL is exercised, not simulated against H2 |
+| Backend tests | JUnit 5, Mockito, Testcontainers (Postgres, Redis) | Real Postgres-specific SQL and real cache behaviour are exercised, not simulated against H2 or an in-memory cache |
 | Frontend tests | Vitest, React Testing Library, MSW | Component behaviour and API-mocked integration paths |
 | IaC | Terraform | Industry-standard, declarative, reviewable without applying |
 
@@ -196,7 +215,18 @@ aggregate query results is safe and avoids re-running the same `GROUP BY` /
   JDK-serialization `RedisCacheManager` can't handle — `CacheConfig` swaps in
   `GenericJackson2JsonRedisSerializer` so responses are stored as JSON (also
   easier to inspect directly in Redis, e.g. `redis-cli --scan --pattern
-  'insights-*'`).
+  'insights-*'`). One real gotcha this surfaced: `Stream.toList()`'s concrete
+  return type doesn't get a type marker on write but a cache *read* still
+  expects to find one, so every cached list silently failed to round-trip.
+  Every `@Cacheable` method collects into a plain `ArrayList` instead (which
+  does round-trip correctly) — see the note on `InsightsService`, and
+  `CacheConfigSerializationTest` for a regression test that doesn't need
+  Docker to run.
+- **Resilience**: a Redis entry `CacheConfig`'s serializer can't read back
+  (e.g. left over from before this config existed) is logged and treated as a
+  cache miss (`CachingConfigurer.errorHandler()`) rather than failing the
+  request — the fallthrough recompute overwrites the bad entry, so it
+  self-heals.
 - **What's *not* cached**: `/api/transactions` — its arbitrary combination of
   filters, sort field, and page number means near-every request is a distinct
   cache key, unlike the Insights endpoints which only vary by a `groupBy` (or
@@ -204,16 +234,37 @@ aggregate query results is safe and avoids re-running the same `GROUP BY` /
   already cached before this change, using the same eviction-on-reingest
   pattern.
 
+## Error handling
+
+**Backend**: `ApiExceptionHandler` (`@RestControllerAdvice`) returns
+[RFC 7807](https://www.rfc-editor.org/rfc/rfc7807) `ProblemDetail` bodies for
+every error, not a generic stack trace — specific handlers map
+`ResourceNotFoundException` → 404, an in-flight re-ingest → 409,
+`IllegalArgumentException` (invalid `groupBy`, etc.) and bean validation
+failures → 400, and a catch-all `Exception` handler logs and returns a clean
+500 for anything unanticipated (e.g. the Redis deserialization bug above,
+before it was fixed at the source) instead of leaking the servlet container's
+default HTML error page.
+
+**Frontend**: every page handles its own loading/error/empty states inline
+(`LoadingState`/`ErrorState`/`EmptyState`, with retry buttons wired to
+TanStack Query's `refetch`), and a top-level `ErrorBoundary` around the routed
+page content catches unexpected rendering errors so one broken component
+shows a "Reload" fallback instead of white-screening the whole app.
+
 ## Testing
 
 **Backend** (`resale-datasg-backend`):
 ```bash
 mvn verify
 ```
-Unit tests (CSV/record mapping, the data.gov.sg client) need nothing extra.
-Controller slice tests (`@WebMvcTest`) need nothing extra. Repository tests use
-a Testcontainers Postgres, and the end-to-end smoke test additionally spins up
-a Testcontainers Redis — both need Docker running.
+Unit tests (CSV/record mapping, the data.gov.sg client, `CacheConfigSerializationTest`'s
+serializer round-trip check) need nothing extra. Controller slice tests
+(`@WebMvcTest`) need nothing extra. Repository tests use a Testcontainers
+Postgres; the end-to-end smoke test and `InsightsCachingTest` (proves a
+repeated call is actually served from cache and that eviction works, not just
+that the app starts with Redis present) additionally spin up a Testcontainers
+Redis — these need Docker running.
 
 **Frontend** (`resale-datasg-frontend`):
 ```bash

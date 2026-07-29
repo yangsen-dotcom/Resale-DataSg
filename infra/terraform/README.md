@@ -25,14 +25,14 @@ target architecture and IaC practice. `terraform init`, `validate`, and `plan`
                           private subnets (2 AZs)
                                       ▼
                          ┌─────────────────────────┐        ┌──────────────────┐
-                         │  ECS Fargate: backend    │──────► │ Secrets Manager  │
+                         │  ECS Fargate: backend    │───────►│ Secrets Manager  │
                          │  (image from ECR)        │        │ (DB credentials) │
-                         └────────────┬─────────────┘        └──────────────────┘
-                                      ▼
-                         ┌─────────────────────────┐
-                         │  RDS PostgreSQL          │
-                         │  (private subnets)       │
-                         └─────────────────────────┘
+                         └────────────┬─────┬───────┘        └──────────────────┘
+                                      ▼     ▼
+                    ┌─────────────────────┐   ┌─────────────────────┐
+                    │  RDS PostgreSQL     │   │  ElastiCache Redis   │
+                    │  (private subnets)  │   │  (private subnets)   │
+                    └─────────────────────┘   └─────────────────────┘
 ```
 
 - **Frontend**: S3 (private bucket, no public access) + CloudFront with Origin
@@ -45,6 +45,10 @@ target architecture and IaC practice. `terraform init`, `validate`, and `plan`
   inbound 5432 from the ECS service's security group. Credentials are generated
   with `random_password` and stored in Secrets Manager; the ECS task pulls them in
   via `secrets` (not plain environment variables).
+- **Cache**: ElastiCache Redis (single node), private subnets only, security group
+  restricted to inbound 6379 from the ECS service's security group. Backs the
+  `@Cacheable` Insights chart endpoints — see the root README's "Caching" section
+  for what's cached and how it's invalidated.
 - **Networking**: one VPC, 2 AZs, 2 public + 2 private subnets, single NAT gateway
   (cost-conscious default — see below).
 - **IAM**: separate ECS task **execution** role (pull from ECR, write CloudWatch
@@ -67,6 +71,9 @@ Called out here so it reads as a conscious choice, not an oversight:
   `multi_az = true` is a one-line change later.
 - **WAF, VPC flow logs, CloudTrail** — not essential to demonstrating the core
   application architecture pattern.
+- **Redis AUTH token / encryption-in-transit** — the cache only ever holds
+  derived, non-sensitive chart aggregates (never credentials or PII), so the
+  RDS-grade hardening (Secrets Manager, encryption) wasn't warranted for it.
 
 ## Variables
 
@@ -80,6 +87,7 @@ Called out here so it reads as a conscious choice, not an oversight:
 | `public_subnet_cidrs` / `private_subnet_cidrs` | `/24`s | Subnet CIDRs |
 | `db_instance_class` | `db.t4g.micro` | RDS instance size |
 | `db_allocated_storage_gb` | `20` | RDS storage |
+| `redis_node_type` | `cache.t4g.micro` | ElastiCache node size |
 | `backend_task_cpu` / `backend_task_memory` | `256` / `512` | Fargate task sizing |
 | `backend_desired_count` | `1` | ECS service size |
 | `backend_image_tag` | `latest` | Image tag in ECR to deploy |

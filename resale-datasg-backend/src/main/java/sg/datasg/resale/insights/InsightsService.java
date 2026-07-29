@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import sg.datasg.resale.insights.dto.AreaTrendPointResponse;
 import sg.datasg.resale.insights.dto.FlatTypeAveragePriceResponse;
@@ -31,6 +32,7 @@ public class InsightsService {
         this.repository = repository;
     }
 
+    @Cacheable(InsightsCacheNames.SUMMARY)
     public SummaryStatsResponse summary(String town, String flatType) {
         SummaryStatsProjection projection = repository.summaryStats(town, flatType);
         return new SummaryStatsResponse(
@@ -41,6 +43,7 @@ public class InsightsService {
             projection.getMaxPrice());
     }
 
+    @Cacheable(InsightsCacheNames.PRICE_TREND)
     public List<PriceTrendPointResponse> priceTrend(String groupBy, String town, String flatType) {
         String unit = groupBy == null ? "month" : groupBy.toLowerCase();
         if (!ALLOWED_GROUP_BY.contains(unit)) {
@@ -51,6 +54,7 @@ public class InsightsService {
             .toList();
     }
 
+    @Cacheable(InsightsCacheNames.PRICE_TREND_BY_TOWN)
     public List<TownPriceTrendPointResponse> priceTrendByTown(String groupBy) {
         String unit = groupBy == null ? "year" : groupBy.toLowerCase();
         if (!ALLOWED_GROUP_BY.contains(unit)) {
@@ -62,6 +66,7 @@ public class InsightsService {
             .toList();
     }
 
+    @Cacheable(InsightsCacheNames.PRICE_TREND_BY_FLAT_TYPE)
     public List<FlatTypePriceTrendPointResponse> priceTrendByFlatType(String groupBy) {
         String unit = groupBy == null ? "year" : groupBy.toLowerCase();
         if (!ALLOWED_GROUP_BY.contains(unit)) {
@@ -73,6 +78,7 @@ public class InsightsService {
             .toList();
     }
 
+    @Cacheable(InsightsCacheNames.MAX_PRICE_TREND_BY_TOWN)
     public List<TownMaxPriceTrendPointResponse> maxPriceTrendByTown(String groupBy) {
         String unit = groupBy == null ? "year" : groupBy.toLowerCase();
         if (!ALLOWED_GROUP_BY.contains(unit)) {
@@ -84,6 +90,7 @@ public class InsightsService {
             .toList();
     }
 
+    @Cacheable(InsightsCacheNames.MIN_PRICE_TREND_BY_TOWN)
     public List<TownMinPriceTrendPointResponse> minPriceTrendByTown(String groupBy) {
         String unit = groupBy == null ? "year" : groupBy.toLowerCase();
         if (!ALLOWED_GROUP_BY.contains(unit)) {
@@ -95,6 +102,7 @@ public class InsightsService {
             .toList();
     }
 
+    @Cacheable(InsightsCacheNames.MEDIAN_PRICE_TREND_BY_TOWN)
     public List<TownMedianPriceTrendPointResponse> medianPriceTrendByTown(String groupBy) {
         String unit = groupBy == null ? "year" : groupBy.toLowerCase();
         if (!ALLOWED_GROUP_BY.contains(unit)) {
@@ -106,6 +114,7 @@ public class InsightsService {
             .toList();
     }
 
+    @Cacheable(InsightsCacheNames.PRICE_PER_SQM_TREND_BY_TOWN)
     public List<TownPricePerSqmTrendPointResponse> pricePerSqmTrendByTown(String groupBy) {
         String unit = groupBy == null ? "year" : groupBy.toLowerCase();
         if (!ALLOWED_GROUP_BY.contains(unit)) {
@@ -117,6 +126,7 @@ public class InsightsService {
             .toList();
     }
 
+    @Cacheable(InsightsCacheNames.AREA_TREND)
     public List<AreaTrendPointResponse> areaTrend(String groupBy) {
         String unit = groupBy == null ? "month" : groupBy.toLowerCase();
         if (!ALLOWED_GROUP_BY.contains(unit)) {
@@ -127,6 +137,7 @@ public class InsightsService {
             .toList();
     }
 
+    @Cacheable(InsightsCacheNames.AVERAGE_PRICE_BY_REMAINING_LEASE)
     public List<RemainingLeasePriceResponse> averagePriceByRemainingLease() {
         return repository.averagePriceByRemainingLease().stream()
             .map(p -> new RemainingLeasePriceResponse(p.getRemainingLeaseYears(), round(p.getAveragePrice()),
@@ -134,6 +145,7 @@ public class InsightsService {
             .toList();
     }
 
+    @Cacheable(InsightsCacheNames.AVERAGE_PRICE_BY_TOWN)
     public List<TownAveragePriceResponse> averagePriceByTown(String flatType, YearMonth fromMonth,
         YearMonth toMonth) {
         LocalDate from = fromMonth == null ? null : fromMonth.atDay(1);
@@ -143,6 +155,7 @@ public class InsightsService {
             .toList();
     }
 
+    @Cacheable(InsightsCacheNames.AVERAGE_PRICE_BY_FLAT_TYPE)
     public List<FlatTypeAveragePriceResponse> averagePriceByFlatType(String town, YearMonth fromMonth,
         YearMonth toMonth) {
         LocalDate from = fromMonth == null ? null : fromMonth.atDay(1);

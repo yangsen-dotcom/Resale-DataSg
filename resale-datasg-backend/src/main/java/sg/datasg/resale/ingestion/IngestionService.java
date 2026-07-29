@@ -12,6 +12,7 @@ import sg.datasg.resale.config.IngestionProperties;
 import sg.datasg.resale.ingestion.datagovsg.DataGovSgClient;
 import sg.datasg.resale.ingestion.datagovsg.DatastoreSearchResponse;
 import sg.datasg.resale.ingestion.datagovsg.RawResaleTransactionRecord;
+import sg.datasg.resale.insights.InsightsCacheNames;
 import sg.datasg.resale.transaction.ResaleTransaction;
 import sg.datasg.resale.transaction.ResaleTransactionRepository;
 
@@ -82,6 +83,7 @@ public class IngestionService {
             }
             log.info("Ingestion complete: {} rows loaded", rowsIngested);
             evictFilterOptionCaches();
+            evictInsightsCaches();
         } finally {
             ingestionInProgress.set(false);
         }
@@ -94,6 +96,15 @@ public class IngestionService {
 
     private void evictFilterOptionCaches() {
         for (String cacheName : List.of("towns", "flatTypes", "blocks")) {
+            var cache = cacheManager.getCache(cacheName);
+            if (cache != null) {
+                cache.clear();
+            }
+        }
+    }
+
+    private void evictInsightsCaches() {
+        for (String cacheName : InsightsCacheNames.ALL) {
             var cache = cacheManager.getCache(cacheName);
             if (cache != null) {
                 cache.clear();

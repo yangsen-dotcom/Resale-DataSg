@@ -24,7 +24,13 @@ Resale-DataSg/
  │  Spring Boot REST    │◄──────►│  PostgreSQL           │
  │  API (backend)        │        │  (resale_transaction)│
  └──────────▲───────────┘        └──────────────────────┘
-            │ REST/JSON
+            │ REST/JSON            │
+            │                      ▼
+            │               ┌──────────────────────┐
+            │               │  Redis                │
+            │               │  (Insights chart      │
+            │               │   response cache)     │
+            │               └──────────────────────┘
  ┌──────────┴───────────┐
  │  React SPA (frontend) │
  │  Explore / Insights   │
@@ -34,6 +40,8 @@ Resale-DataSg/
 The backend ingests the dataset once (see [How data gets in](#how-data-gets-in)),
 stores it in Postgres, and serves it through a REST API. The frontend is a
 client-side SPA that queries that API — it never talks to data.gov.sg directly.
+The Insights chart endpoints are additionally cached in Redis (see
+[Caching](#caching)), since that data only changes on a manual re-ingest.
 
 ## Tech stack & why
 
@@ -42,6 +50,7 @@ client-side SPA that queries that API — it never talks to data.gov.sg directly
 | Backend | Spring Boot 3 (Java 21) | Mature REST + JPA + testing ecosystem; easy to containerize for ECS |
 | Database | PostgreSQL | `percentile_cont`/`date_trunc` power the insights queries; matches the RDS target in Terraform |
 | Schema migrations | Flyway | Versioned, repeatable schema setup |
+| Cache | Redis (Spring Cache abstraction) | Insights chart data changes only on re-ingest, not per-request — caching avoids re-running the same aggregate SQL on every page load |
 | API docs | springdoc-openapi | Swagger UI generated from the code, always in sync |
 | Frontend | React + TypeScript + Vite | Fast dev loop; already scaffolded |
 | Server state | TanStack Query | Caching, loading/error states, refetch-on-filter-change, without hand-rolled `useEffect` fetching |
@@ -80,7 +89,7 @@ rows).
 ### Option A — dev mode (hot reload, needs local JDK 21 + Node 22)
 
 ```bash
-docker compose up postgres          # wait for it to report healthy
+docker compose up postgres redis    # wait for both to report healthy
 
 cd resale-datasg-backend
 mvn spring-boot:run                 # http://localhost:9090
@@ -90,11 +99,12 @@ npm install
 npm run dev                         # http://localhost:5173
 ```
 
-Postgres is published on host port **5434** (not the default 5432), to avoid
-clashing with a Postgres instance you might already have running locally.
-`application.yml`'s default `DB_URL` already points at `localhost:5434`, so
-`mvn spring-boot:run` connects out of the box — override `DB_URL` if you've
-changed the port mapping in `docker-compose.yml`.
+Postgres is published on host port **5434** (not the default 5432) and Redis on
+**6380** (not the default 6379), to avoid clashing with instances you might
+already have running locally. `application.yml`'s defaults already point at
+`localhost:5434` / `localhost:6380`, so `mvn spring-boot:run` connects out of the
+box — override `DB_URL` / `REDIS_HOST` / `REDIS_PORT` if you've changed the port
+mappings in `docker-compose.yml`.
 
 First backend startup will take a little while (a few minutes) while it pulls
 ~230k rows from data.gov.sg — watch the logs for ingestion progress.
@@ -105,8 +115,8 @@ First backend startup will take a little while (a few minutes) while it pulls
 docker compose --profile full up --build
 ```
 
-This builds and runs Postgres, the backend, and the frontend (served by nginx,
-which proxies `/api/*` to the backend) — no local JDK or Node needed. Open
+This builds and runs Postgres, Redis, the backend, and the frontend (served by
+nginx, which proxies `/api/*` to the backend) — no local JDK or Node needed. Open
 `http://localhost:8081`.
 
 ## API documentation
@@ -142,6 +152,32 @@ Postgres's `percentile_cont` for the median, with optional filters pushed down a
 `WHERE` predicates and grouping done via `GROUP BY` / `date_trunc`. At ~230k+ rows
 this is both faster and more correct than pulling rows into the JVM to aggregate.
 
+## Caching
+
+Every `/api/insights/*` endpoint is wrapped in `@Cacheable` (`InsightsService`),
+backed by Redis via Spring's cache abstraction. This data only changes when
+someone explicitly re-ingests — normal usage is read-only — so caching the
+aggregate query results is safe and avoids re-running the same `GROUP BY` /
+`percentile_cont` SQL on every page load or chart-metric toggle.
+
+- **Invalidation**: `POST /api/admin/ingest` explicitly clears every Insights
+  cache (and the existing `towns`/`flatTypes`/`blocks` filter-option caches) once
+  the reload finishes — see `IngestionService.evictInsightsCaches()` and the
+  single source of truth for cache names, `InsightsCacheNames`. A 6-hour TTL
+  (`CacheConfig`) is a safety net in case an eviction is ever missed, not the
+  primary invalidation path.
+- **Serialization**: cached values are Java records, which the default
+  JDK-serialization `RedisCacheManager` can't handle — `CacheConfig` swaps in
+  `GenericJackson2JsonRedisSerializer` so responses are stored as JSON (also
+  easier to inspect directly in Redis, e.g. `redis-cli --scan --pattern
+  'insights-*'`).
+- **What's *not* cached**: `/api/transactions` — its arbitrary combination of
+  filters, sort field, and page number means near-every request is a distinct
+  cache key, unlike the Insights endpoints which only vary by a `groupBy` (or
+  no) parameter. The filter-option endpoints (`towns`/`flatTypes`/`blocks`) were
+  already cached before this change, using the same eviction-on-reingest
+  pattern.
+
 ## Testing
 
 **Backend** (`resale-datasg-backend`):
@@ -149,8 +185,9 @@ this is both faster and more correct than pulling rows into the JVM to aggregate
 mvn verify
 ```
 Unit tests (CSV/record mapping, the data.gov.sg client) need nothing extra.
-Controller slice tests (`@WebMvcTest`) need nothing extra. Repository and
-end-to-end tests use Testcontainers and need Docker running.
+Controller slice tests (`@WebMvcTest`) need nothing extra. Repository tests use
+a Testcontainers Postgres, and the end-to-end smoke test additionally spins up
+a Testcontainers Redis — both need Docker running.
 
 **Frontend** (`resale-datasg-frontend`):
 ```bash
@@ -165,11 +202,11 @@ Both run in CI on every push (`.github/workflows/ci.yml`), along with
 ## AWS architecture (not deployed)
 
 `infra/terraform/` defines the target AWS architecture — CloudFront + S3 for the
-frontend, ECS Fargate + ALB for the backend, RDS Postgres, Secrets Manager for
-credentials — but is **intentionally never applied** (deployment isn't required
-for this assessment, and `apply` would incur real cost). See
-[`infra/terraform/README.md`](infra/terraform/README.md) for the full design,
-variables, and what's deliberately out of scope.
+frontend, ECS Fargate + ALB for the backend, RDS Postgres, ElastiCache Redis,
+Secrets Manager for credentials — but is **intentionally never applied**
+(deployment isn't required for this assessment, and `apply` would incur real
+cost). See [`infra/terraform/README.md`](infra/terraform/README.md) for the
+full design, variables, and what's deliberately out of scope.
 
 ## Assumptions & trade-offs
 
@@ -190,6 +227,9 @@ variables, and what's deliberately out of scope.
 - **Local dev Postgres credentials are intentionally simple** (`resale_datasg` /
   `resale_datasg`) — fine for a local `docker-compose`, not meant to represent a
   real secret; Terraform generates a real random password for RDS instead.
+- **Redis has no auth / encryption**, locally or in the Terraform target
+  architecture — it only ever holds derived, non-sensitive chart aggregates
+  (never credentials or PII), so the RDS-grade hardening wasn't warranted.
 - **AWS resources are demo-sized** (single Fargate task, `db.t4g.micro`,
   single-AZ) — see the Terraform README's "deliberately out of scope" section.
 

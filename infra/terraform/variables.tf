@@ -64,6 +64,12 @@ variable "db_allocated_storage_gb" {
   default     = 20
 }
 
+variable "redis_node_type" {
+  description = "ElastiCache node type (single-node cache.t4g.micro is sized for this demo, not production load)"
+  type        = string
+  default     = "cache.t4g.micro"
+}
+
 variable "backend_image_tag" {
   description = "Tag of the backend image in ECR to deploy"
   type        = string

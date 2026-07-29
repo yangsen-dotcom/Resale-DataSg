@@ -35,6 +35,8 @@ resource "aws_ecs_task_definition" "backend" {
 
       environment = [
         { name = "DB_URL", value = "jdbc:postgresql://${aws_db_instance.main.address}:5432/${var.db_name}" },
+        { name = "REDIS_HOST", value = aws_elasticache_cluster.main.cache_nodes[0].address },
+        { name = "REDIS_PORT", value = tostring(aws_elasticache_cluster.main.cache_nodes[0].port) },
         { name = "CORS_ALLOWED_ORIGIN", value = "https://${aws_cloudfront_distribution.frontend.domain_name}" },
       ]
 

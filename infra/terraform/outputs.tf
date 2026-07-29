@@ -13,6 +13,11 @@ output "rds_endpoint" {
   value       = aws_db_instance.main.endpoint
 }
 
+output "redis_endpoint" {
+  description = "ElastiCache Redis endpoint used for backend response caching"
+  value       = aws_elasticache_cluster.main.cache_nodes[0].address
+}
+
 output "ecr_repository_url" {
   description = "ECR repository URL to push the backend image to before applying"
   value       = aws_ecr_repository.backend.repository_url

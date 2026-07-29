@@ -31,10 +31,10 @@ Resale-DataSg/
             │               │  (Insights chart      │
             │               │   response cache)     │
             │               └──────────────────────┘
- ┌──────────┴───────────┐
- │  React SPA (frontend) │
- │  Explore / Insights   │
- └───────────────────────┘
+ ┌────────────┴────────────┐
+ │  React SPA (frontend)    │
+ │  Explore / Insights / Map │
+ └──────────────────────────┘
 ```
 
 The backend ingests the dataset once (see [How data gets in](#how-data-gets-in)),
@@ -42,6 +42,26 @@ stores it in Postgres, and serves it through a REST API. The frontend is a
 client-side SPA that queries that API — it never talks to data.gov.sg directly.
 The Insights chart endpoints are additionally cached in Redis (see
 [Caching](#caching)), since that data only changes on a manual re-ingest.
+
+## Frontend pages
+
+- **Explore** (`/`) — the full transaction listing: multi-select town/flat-type
+  filters, a comma-formatted price range, a month range picker, a table sortable
+  on all 9 relevant columns (click a header to sort, click again to reverse), a
+  page-size selector, and a "go to page" input alongside standard pagination.
+- **Insights** (`/insights`) — a left-hand nav across four comparison
+  dimensions: **Towns** (Average/Highest/Lowest/Median Price, Transaction Count,
+  and Price per SQM, toggled via a pill control, each rendered as one line per
+  town with a click-to-show/hide legend), **Flat Types** (Average Price /
+  Transaction Count), **Remain Lease** (average price by remaining-lease-year
+  bucket), and **Area** (median floor area by month). Every chart shows
+  highest/lowest/average summary stat tiles above it, and the SVG charts have a
+  cursor-following tooltip rather than a fixed-position one.
+- **Map** (`/map`) — a Leaflet map with a marker per town (positioned at
+  approximate real-world centroids, see `src/data/townCoordinates.ts`); clicking
+  a town (or picking one from the dropdown) reveals its blocks, and picking a
+  block loads that block's transactions in the same sortable/paginated table
+  used on Explore.
 
 ## Tech stack & why
 
@@ -54,7 +74,7 @@ The Insights chart endpoints are additionally cached in Redis (see
 | API docs | springdoc-openapi | Swagger UI generated from the code, always in sync |
 | Frontend | React + TypeScript + Vite | Fast dev loop; already scaffolded |
 | Server state | TanStack Query | Caching, loading/error states, refetch-on-filter-change, without hand-rolled `useEffect` fetching |
-| Routing | react-router-dom | Two views (Explore, Insights) with shared, URL-persisted filter state |
+| Routing | react-router-dom | Three pages (Explore, Insights, Map); filter/selection state is kept in memory, not the URL — picking a filter re-fetches and updates in place instead of navigating |
 | Backend tests | JUnit 5, Mockito, Testcontainers (Postgres) | Real Postgres-specific SQL is exercised, not simulated against H2 |
 | Frontend tests | Vitest, React Testing Library, MSW | Component behaviour and API-mocked integration paths |
 | IaC | Terraform | Industry-standard, declarative, reviewable without applying |
@@ -151,6 +171,12 @@ All aggregation happens in SQL, not application code — `AVG`, `MIN`, `MAX`, an
 Postgres's `percentile_cont` for the median, with optional filters pushed down as
 `WHERE` predicates and grouping done via `GROUP BY` / `date_trunc`. At ~230k+ rows
 this is both faster and more correct than pulling rows into the JVM to aggregate.
+`V2__add_missing_indexes.sql` adds a `(flat_type, month)` composite (mirroring
+the existing `(town, month)` one), an expression index on the parsed
+remaining-lease years, and a `block` index — each targets a specific
+`WHERE`/`GROUP BY` shape one of these queries actually uses. Caching (below) and
+indexing are complementary here, not redundant: indexing keeps a cache *miss*
+cheap, caching means most requests skip the query entirely.
 
 ## Caching
 
@@ -220,10 +246,14 @@ full design, variables, and what's deliberately out of scope.
 - **No auth.** The data is public and read-only from the user's perspective; the
   one write-ish endpoint (`/api/admin/ingest`) has no auth in front of it, which
   would need addressing before this went anywhere near the public internet.
-- **Insights endpoints accept a single `town`/`flatType` filter**, not the same
-  multi-select lists the transaction listing supports — the frontend's Insights
-  page reuses the same filter panel for a consistent UI but only sends the first
-  selected value of each to those endpoints.
+- **Some early Insights endpoints are no longer called by the frontend.**
+  `/api/insights/summary`, `/api/insights/price-trend`, and
+  `/api/insights/by-flat-type` predate the current Insights page design (a
+  left-nav across Towns/Flat Types/Remain Lease/Area, each rendered as its own
+  chart) and accept a single `town`/`flatType` filter rather than the
+  multi-select lists the transaction listing supports. Kept rather than
+  deleted — they're still correct, tested, general-purpose aggregate
+  endpoints, just not wired into the current UI.
 - **Local dev Postgres credentials are intentionally simple** (`resale_datasg` /
   `resale_datasg`) — fine for a local `docker-compose`, not meant to represent a
   real secret; Terraform generates a real random password for RDS instead.
@@ -238,7 +268,10 @@ full design, variables, and what's deliberately out of scope.
 - Scheduled re-ingestion (cron/EventBridge) to pick up new monthly data.gov.sg
   releases automatically, and merge in the pre-2017 historical datasets.
 - Auth on the admin re-ingest endpoint.
-- Map-based visualisation of town-level prices.
+- Real geocoded block-level pins on the Map page (currently town-level only,
+  using static approximate centroids in `townCoordinates.ts`) — per-block
+  geocoding via OneMap was prototyped and works unauthenticated, but was
+  reverted since reliable use requires an account.
 - Server-side CSV export of the current filtered result set.
 - Autoscaling, Multi-AZ RDS, and a custom domain if this were actually deployed.
 - Cursor-based pagination if the dataset grows large enough for offset pagination

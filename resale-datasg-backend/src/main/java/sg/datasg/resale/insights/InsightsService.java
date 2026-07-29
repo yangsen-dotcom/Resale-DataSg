@@ -4,8 +4,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import sg.datasg.resale.insights.dto.AreaTrendPointResponse;
@@ -21,6 +23,15 @@ import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPricePerSqmTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPriceTrendPointResponse;
 
+/**
+ * The {@code @Cacheable} methods here deliberately collect into {@link ArrayList}
+ * ({@code Collectors.toCollection(ArrayList::new)}) rather than {@code Stream.toList()}.
+ * {@code CacheConfig}'s {@code GenericJackson2JsonRedisSerializer} embeds a type
+ * marker on write only for types it considers ambiguous; {@code Stream.toList()}'s
+ * concrete class doesn't get one, but a read (always targeting {@code Object.class})
+ * still expects to find one, so every cache read for a {@code Stream.toList()} result
+ * throws. {@code ArrayList} round-trips correctly, since it does get a marker.
+ */
 @Service
 public class InsightsService {
 
@@ -51,7 +62,7 @@ public class InsightsService {
         }
         return repository.priceTrend(unit, town, flatType).stream()
             .map(p -> new PriceTrendPointResponse(p.getPeriod(), round(p.getAveragePrice()), p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(InsightsCacheNames.PRICE_TREND_BY_TOWN)
@@ -63,7 +74,7 @@ public class InsightsService {
         return repository.priceTrendByTown(unit).stream()
             .map(p -> new TownPriceTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getAveragePrice()),
                 p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(InsightsCacheNames.PRICE_TREND_BY_FLAT_TYPE)
@@ -75,7 +86,7 @@ public class InsightsService {
         return repository.priceTrendByFlatType(unit).stream()
             .map(p -> new FlatTypePriceTrendPointResponse(p.getFlatType(), p.getPeriod(), round(p.getAveragePrice()),
                 p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(InsightsCacheNames.MAX_PRICE_TREND_BY_TOWN)
@@ -87,7 +98,7 @@ public class InsightsService {
         return repository.maxPriceTrendByTown(unit).stream()
             .map(p -> new TownMaxPriceTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getMaxPrice()),
                 p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(InsightsCacheNames.MIN_PRICE_TREND_BY_TOWN)
@@ -99,7 +110,7 @@ public class InsightsService {
         return repository.minPriceTrendByTown(unit).stream()
             .map(p -> new TownMinPriceTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getMinPrice()),
                 p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(InsightsCacheNames.MEDIAN_PRICE_TREND_BY_TOWN)
@@ -111,7 +122,7 @@ public class InsightsService {
         return repository.medianPriceTrendByTown(unit).stream()
             .map(p -> new TownMedianPriceTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getMedianPrice()),
                 p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(InsightsCacheNames.PRICE_PER_SQM_TREND_BY_TOWN)
@@ -123,7 +134,7 @@ public class InsightsService {
         return repository.pricePerSqmTrendByTown(unit).stream()
             .map(p -> new TownPricePerSqmTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getPricePerSqm()),
                 p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(InsightsCacheNames.AREA_TREND)
@@ -134,7 +145,7 @@ public class InsightsService {
         }
         return repository.areaTrend(unit).stream()
             .map(p -> new AreaTrendPointResponse(p.getPeriod(), round(p.getMedianArea()), p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(InsightsCacheNames.AVERAGE_PRICE_BY_REMAINING_LEASE)
@@ -142,7 +153,7 @@ public class InsightsService {
         return repository.averagePriceByRemainingLease().stream()
             .map(p -> new RemainingLeasePriceResponse(p.getRemainingLeaseYears(), round(p.getAveragePrice()),
                 p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(InsightsCacheNames.AVERAGE_PRICE_BY_TOWN)
@@ -152,7 +163,7 @@ public class InsightsService {
         LocalDate to = toMonth == null ? null : toMonth.atEndOfMonth();
         return repository.averagePriceByTown(flatType, from, to).stream()
             .map(p -> new TownAveragePriceResponse(p.getTown(), round(p.getAveragePrice()), p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Cacheable(InsightsCacheNames.AVERAGE_PRICE_BY_FLAT_TYPE)
@@ -163,7 +174,7 @@ public class InsightsService {
         return repository.averagePriceByFlatType(town, from, to).stream()
             .map(p -> new FlatTypeAveragePriceResponse(p.getFlatType(), round(p.getAveragePrice()),
                 p.getTransactionCount()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private BigDecimal round(BigDecimal value) {

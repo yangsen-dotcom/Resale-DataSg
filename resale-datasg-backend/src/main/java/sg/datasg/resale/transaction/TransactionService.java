@@ -1,7 +1,9 @@
 package sg.datasg.resale.transaction;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,11 +42,13 @@ public class TransactionService {
         return repository.findDistinctFlatTypes();
     }
 
+    // Collects into ArrayList, not Stream.toList() - see the note on
+    // InsightsService for why that matters once responses are cached in Redis.
     @Cacheable(value = "blocks", key = "#town")
     public List<BlockOptionResponse> distinctBlocks(String town) {
         return repository.findDistinctBlocksByTown(town).stream()
             .map(b -> new BlockOptionResponse(b.getBlock(), b.getStreetName()))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private void validateSort(Sort sort) {

@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { AppHeader } from './components/layout/AppHeader'
+import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { ExplorePage } from './pages/ExplorePage'
 import { MapPage } from './pages/MapPage'
 import { InsightsPage } from './pages/InsightsPage'
@@ -10,11 +11,13 @@ function App() {
     <>
       <AppHeader />
       <div className="appContainer">
-        <Routes>
-          <Route path="/" element={<ExplorePage />} />
-          <Route path="/map" element={<MapPage />} />
-          <Route path="/insights" element={<InsightsPage />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<ExplorePage />} />
+            <Route path="/map" element={<MapPage />} />
+            <Route path="/insights" element={<InsightsPage />} />
+          </Routes>
+        </ErrorBoundary>
       </div>
     </>
   )

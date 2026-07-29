@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
-import { CURRENCY_COMPACT, fixedRangeTicks, niceAxisTicks } from './chartUtils'
+import { CURRENCY_COMPACT, NUMBER_COMPACT, fixedRangeTicks, niceAxisTicks } from './chartUtils'
 import styles from './ComparisonLineChart.module.css'
 import '../../styles/chart-tokens.css'
 
@@ -32,6 +32,8 @@ interface ComparisonLineChartProps {
   ariaLabel: string
   /** Fixed [min, max] for the Y-axis instead of deriving it from the visible data. */
   yDomain?: [number, number]
+  /** How to format axis labels and tooltip values. Defaults to currency. */
+  valueFormat?: 'currency' | 'count'
 }
 
 export function ComparisonLineChart({
@@ -41,7 +43,10 @@ export function ComparisonLineChart({
   description,
   ariaLabel,
   yDomain,
+  valueFormat = 'currency',
 }: ComparisonLineChartProps) {
+  const formatValue = (value: number) =>
+    valueFormat === 'count' ? NUMBER_COMPACT.format(value) : CURRENCY_COMPACT.format(value)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null)
@@ -139,7 +144,7 @@ export function ComparisonLineChart({
             <g key={tick}>
               <line x1={0} x2={plotWidth} y1={yFor(tick)} y2={yFor(tick)} className={styles.gridline} />
               <text x={-8} y={yFor(tick)} className={styles.axisLabel} textAnchor="end" dominantBaseline="middle">
-                {CURRENCY_COMPACT.format(tick)}
+                {formatValue(tick)}
               </text>
             </g>
           ))}
@@ -181,7 +186,7 @@ export function ComparisonLineChart({
               <div key={key} className={styles.tooltipRow}>
                 <span className={styles.tooltipSwatch} style={{ background: colorForKey(key) }} />
                 <span className={styles.tooltipTown}>{key}</span>
-                <strong>{CURRENCY_COMPACT.format(point.price)}</strong>
+                <strong>{formatValue(point.price)}</strong>
               </div>
             ))}
           </div>

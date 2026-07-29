@@ -75,6 +75,29 @@ export const handlers = [
     ])
   }),
 
+  http.get(`${API_BASE_URL}/api/insights/median-price-trend-by-town`, () => {
+    return HttpResponse.json([
+      { town: 'ANG MO KIO', period: '2023', medianPrice: 440000, transactionCount: 3000 },
+      { town: 'BEDOK', period: '2023', medianPrice: 480000, transactionCount: 5230 },
+      { town: 'TAMPINES', period: '2023', medianPrice: 500000, transactionCount: 4100 },
+    ])
+  }),
+
+  http.get(`${API_BASE_URL}/api/insights/price-per-sqm-trend-by-town`, () => {
+    return HttpResponse.json([
+      { town: 'ANG MO KIO', period: '2023', pricePerSqm: 5100, transactionCount: 3000 },
+      { town: 'BEDOK', period: '2023', pricePerSqm: 5400, transactionCount: 5230 },
+      { town: 'TAMPINES', period: '2023', pricePerSqm: 5600, transactionCount: 4100 },
+    ])
+  }),
+
+  http.get(`${API_BASE_URL}/api/insights/area-trend`, () => {
+    return HttpResponse.json([
+      { period: '2023-01', medianArea: 90, transactionCount: 2000 },
+      { period: '2023-02', medianArea: 95, transactionCount: 1800 },
+    ])
+  }),
+
   http.get(`${API_BASE_URL}/api/insights/average-price-by-remaining-lease`, () => {
     return HttpResponse.json([
       { remainingLeaseYears: 60, averagePrice: 400000, transactionCount: 1200 },

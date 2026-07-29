@@ -1,9 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import {
+  getAreaTrend,
   getAveragePriceByRemainingLease,
   getByTown,
   getMaxPriceTrendByTown,
+  getMedianPriceTrendByTown,
   getMinPriceTrendByTown,
+  getPricePerSqmTrendByTown,
   getPriceTrendByFlatType,
   getPriceTrendByTown,
   type InsightsFilterParams,
@@ -40,6 +43,33 @@ export function useMinPriceTrendByTown(groupBy: 'month' | 'year', enabled = true
   return useQuery({
     queryKey: ['insights', 'min-price-trend-by-town', groupBy],
     queryFn: () => getMinPriceTrendByTown(groupBy),
+    staleTime: 10 * 60 * 1000,
+    enabled,
+  })
+}
+
+export function useMedianPriceTrendByTown(groupBy: 'month' | 'year', enabled = true) {
+  return useQuery({
+    queryKey: ['insights', 'median-price-trend-by-town', groupBy],
+    queryFn: () => getMedianPriceTrendByTown(groupBy),
+    staleTime: 10 * 60 * 1000,
+    enabled,
+  })
+}
+
+export function usePricePerSqmTrendByTown(groupBy: 'month' | 'year', enabled = true) {
+  return useQuery({
+    queryKey: ['insights', 'price-per-sqm-trend-by-town', groupBy],
+    queryFn: () => getPricePerSqmTrendByTown(groupBy),
+    staleTime: 10 * 60 * 1000,
+    enabled,
+  })
+}
+
+export function useAreaTrend(groupBy: 'month' | 'year', enabled = true) {
+  return useQuery({
+    queryKey: ['insights', 'area-trend', groupBy],
+    queryFn: () => getAreaTrend(groupBy),
     staleTime: 10 * 60 * 1000,
     enabled,
   })

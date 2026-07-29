@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import sg.datasg.resale.insights.dto.AreaTrendPointResponse;
 import sg.datasg.resale.insights.dto.FlatTypeAveragePriceResponse;
 import sg.datasg.resale.insights.dto.FlatTypePriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.PriceTrendPointResponse;
@@ -14,7 +15,9 @@ import sg.datasg.resale.insights.dto.RemainingLeasePriceResponse;
 import sg.datasg.resale.insights.dto.SummaryStatsResponse;
 import sg.datasg.resale.insights.dto.TownAveragePriceResponse;
 import sg.datasg.resale.insights.dto.TownMaxPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.TownMedianPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.TownPricePerSqmTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPriceTrendPointResponse;
 
 @RestController
@@ -65,6 +68,24 @@ public class InsightsController {
     public List<TownMinPriceTrendPointResponse> minPriceTrendByTown(
         @RequestParam(required = false, defaultValue = "year") String groupBy) {
         return insightsService.minPriceTrendByTown(groupBy);
+    }
+
+    @GetMapping("/median-price-trend-by-town")
+    public List<TownMedianPriceTrendPointResponse> medianPriceTrendByTown(
+        @RequestParam(required = false, defaultValue = "year") String groupBy) {
+        return insightsService.medianPriceTrendByTown(groupBy);
+    }
+
+    @GetMapping("/price-per-sqm-trend-by-town")
+    public List<TownPricePerSqmTrendPointResponse> pricePerSqmTrendByTown(
+        @RequestParam(required = false, defaultValue = "year") String groupBy) {
+        return insightsService.pricePerSqmTrendByTown(groupBy);
+    }
+
+    @GetMapping("/area-trend")
+    public List<AreaTrendPointResponse> areaTrend(
+        @RequestParam(required = false, defaultValue = "month") String groupBy) {
+        return insightsService.areaTrend(groupBy);
     }
 
     @GetMapping("/average-price-by-remaining-lease")

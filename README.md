@@ -127,6 +127,9 @@ reference. Summary:
 | GET | `/api/insights/price-trend-by-flat-type` | Average price per year (or month), grouped by flat type — powers the Insights page's flat type comparison chart |
 | GET | `/api/insights/max-price-trend-by-town` | Highest resale price per year (or month), grouped by town — powers the Insights page's "Highest Price" view under Towns |
 | GET | `/api/insights/min-price-trend-by-town` | Lowest resale price per year (or month), grouped by town — powers the Insights page's "Lowest Price" view under Towns |
+| GET | `/api/insights/median-price-trend-by-town` | Median resale price per year (or month), grouped by town — powers the Insights page's "Median Price" view under Towns |
+| GET | `/api/insights/price-per-sqm-trend-by-town` | Average price per square metre per year (or month), grouped by town — powers the Insights page's "Price per SQM" view under Towns |
+| GET | `/api/insights/area-trend` | Median floor area (sqm) per year (or month), overall — powers the Insights page's "Area" chart |
 | GET | `/api/insights/average-price-by-remaining-lease` | Average price grouped by remaining lease (whole years) — powers the Insights page's remaining lease chart |
 | GET | `/api/insights/by-town` | Average price and count, grouped by town |
 | GET | `/api/insights/by-flat-type` | Average price and count, grouped by flat type |

@@ -7,6 +7,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
 import org.springframework.stereotype.Service;
+import sg.datasg.resale.insights.dto.AreaTrendPointResponse;
 import sg.datasg.resale.insights.dto.FlatTypeAveragePriceResponse;
 import sg.datasg.resale.insights.dto.FlatTypePriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.PriceTrendPointResponse;
@@ -14,7 +15,9 @@ import sg.datasg.resale.insights.dto.RemainingLeasePriceResponse;
 import sg.datasg.resale.insights.dto.SummaryStatsResponse;
 import sg.datasg.resale.insights.dto.TownAveragePriceResponse;
 import sg.datasg.resale.insights.dto.TownMaxPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.TownMedianPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.TownPricePerSqmTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPriceTrendPointResponse;
 
 @Service
@@ -89,6 +92,38 @@ public class InsightsService {
         return repository.minPriceTrendByTown(unit).stream()
             .map(p -> new TownMinPriceTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getMinPrice()),
                 p.getTransactionCount()))
+            .toList();
+    }
+
+    public List<TownMedianPriceTrendPointResponse> medianPriceTrendByTown(String groupBy) {
+        String unit = groupBy == null ? "year" : groupBy.toLowerCase();
+        if (!ALLOWED_GROUP_BY.contains(unit)) {
+            throw new IllegalArgumentException("Invalid groupBy '" + groupBy + "'. Allowed: " + ALLOWED_GROUP_BY);
+        }
+        return repository.medianPriceTrendByTown(unit).stream()
+            .map(p -> new TownMedianPriceTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getMedianPrice()),
+                p.getTransactionCount()))
+            .toList();
+    }
+
+    public List<TownPricePerSqmTrendPointResponse> pricePerSqmTrendByTown(String groupBy) {
+        String unit = groupBy == null ? "year" : groupBy.toLowerCase();
+        if (!ALLOWED_GROUP_BY.contains(unit)) {
+            throw new IllegalArgumentException("Invalid groupBy '" + groupBy + "'. Allowed: " + ALLOWED_GROUP_BY);
+        }
+        return repository.pricePerSqmTrendByTown(unit).stream()
+            .map(p -> new TownPricePerSqmTrendPointResponse(p.getTown(), p.getPeriod(), round(p.getPricePerSqm()),
+                p.getTransactionCount()))
+            .toList();
+    }
+
+    public List<AreaTrendPointResponse> areaTrend(String groupBy) {
+        String unit = groupBy == null ? "month" : groupBy.toLowerCase();
+        if (!ALLOWED_GROUP_BY.contains(unit)) {
+            throw new IllegalArgumentException("Invalid groupBy '" + groupBy + "'. Allowed: " + ALLOWED_GROUP_BY);
+        }
+        return repository.areaTrend(unit).stream()
+            .map(p -> new AreaTrendPointResponse(p.getPeriod(), round(p.getMedianArea()), p.getTransactionCount()))
             .toList();
     }
 

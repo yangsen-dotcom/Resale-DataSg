@@ -15,12 +15,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
+import sg.datasg.resale.insights.dto.AreaTrendPointResponse;
 import sg.datasg.resale.insights.dto.FlatTypePriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.RemainingLeasePriceResponse;
 import sg.datasg.resale.insights.dto.SummaryStatsResponse;
 import sg.datasg.resale.insights.dto.TownAveragePriceResponse;
 import sg.datasg.resale.insights.dto.TownMaxPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.TownMedianPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.TownPricePerSqmTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPriceTrendPointResponse;
 
 @WebMvcTest(InsightsController.class)
@@ -136,6 +139,69 @@ class InsightsControllerTest {
         when(insightsService.minPriceTrendByTown("week")).thenThrow(new IllegalArgumentException("Invalid groupBy"));
 
         mockMvc.perform(get("/api/insights/min-price-trend-by-town").param("groupBy", "week"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void medianPriceTrendByTownReturnsPointsForEachTown() throws Exception {
+        when(insightsService.medianPriceTrendByTown("year")).thenReturn(List.of(
+            new TownMedianPriceTrendPointResponse("BEDOK", "2023", new BigDecimal("480000.00"), 5230),
+            new TownMedianPriceTrendPointResponse("ANG MO KIO", "2023", new BigDecimal("440000.00"), 3000)));
+
+        mockMvc.perform(get("/api/insights/median-price-trend-by-town").param("groupBy", "year"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].town").value("BEDOK"))
+            .andExpect(jsonPath("$[0].medianPrice").value(480000.00))
+            .andExpect(jsonPath("$[1].town").value("ANG MO KIO"));
+    }
+
+    @Test
+    void medianPriceTrendByTownRejectsInvalidGroupBy() throws Exception {
+        when(insightsService.medianPriceTrendByTown("week")).thenThrow(new IllegalArgumentException("Invalid groupBy"));
+
+        mockMvc.perform(get("/api/insights/median-price-trend-by-town").param("groupBy", "week"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void pricePerSqmTrendByTownReturnsPointsForEachTown() throws Exception {
+        when(insightsService.pricePerSqmTrendByTown("year")).thenReturn(List.of(
+            new TownPricePerSqmTrendPointResponse("BEDOK", "2023", new BigDecimal("5400.00"), 5230),
+            new TownPricePerSqmTrendPointResponse("ANG MO KIO", "2023", new BigDecimal("5100.00"), 3000)));
+
+        mockMvc.perform(get("/api/insights/price-per-sqm-trend-by-town").param("groupBy", "year"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].town").value("BEDOK"))
+            .andExpect(jsonPath("$[0].pricePerSqm").value(5400.00))
+            .andExpect(jsonPath("$[1].town").value("ANG MO KIO"));
+    }
+
+    @Test
+    void pricePerSqmTrendByTownRejectsInvalidGroupBy() throws Exception {
+        when(insightsService.pricePerSqmTrendByTown("week")).thenThrow(new IllegalArgumentException("Invalid groupBy"));
+
+        mockMvc.perform(get("/api/insights/price-per-sqm-trend-by-town").param("groupBy", "week"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void areaTrendReturnsPointsByPeriod() throws Exception {
+        when(insightsService.areaTrend("month")).thenReturn(List.of(
+            new AreaTrendPointResponse("2023-01", new BigDecimal("92.00"), 2000),
+            new AreaTrendPointResponse("2023-02", new BigDecimal("95.00"), 1800)));
+
+        mockMvc.perform(get("/api/insights/area-trend").param("groupBy", "month"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].period").value("2023-01"))
+            .andExpect(jsonPath("$[0].medianArea").value(92.00))
+            .andExpect(jsonPath("$[1].period").value("2023-02"));
+    }
+
+    @Test
+    void areaTrendRejectsInvalidGroupBy() throws Exception {
+        when(insightsService.areaTrend("week")).thenThrow(new IllegalArgumentException("Invalid groupBy"));
+
+        mockMvc.perform(get("/api/insights/area-trend").param("groupBy", "week"))
             .andExpect(status().isBadRequest());
     }
 

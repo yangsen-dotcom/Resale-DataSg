@@ -142,6 +142,44 @@ class InsightsRepositoryTest {
     }
 
     @Test
+    void medianPriceTrendByTownGroupsByTownAndYear() {
+        var trend = insightsRepository.medianPriceTrendByTown("year");
+
+        assertThat(trend).hasSize(2);
+        assertThat(trend.get(0).getTown()).isEqualTo("BEDOK");
+        assertThat(trend.get(0).getPeriod()).isEqualTo("2023");
+        assertThat(trend.get(0).getTransactionCount()).isEqualTo(3);
+        assertThat(trend.get(0).getMedianPrice()).isEqualByComparingTo(new BigDecimal("200000"));
+        assertThat(trend.get(1).getTown()).isEqualTo("TAMPINES");
+        assertThat(trend.get(1).getMedianPrice()).isEqualByComparingTo(new BigDecimal("400000"));
+    }
+
+    @Test
+    void pricePerSqmTrendByTownGroupsByTownAndYear() {
+        var trend = insightsRepository.pricePerSqmTrendByTown("year");
+
+        assertThat(trend).hasSize(2);
+        assertThat(trend.get(0).getTown()).isEqualTo("BEDOK");
+        assertThat(trend.get(0).getPeriod()).isEqualTo("2023");
+        assertThat(trend.get(0).getTransactionCount()).isEqualTo(3);
+        assertThat(trend.get(0).getPricePerSqm().doubleValue()).isCloseTo(2222.22, within(1.0));
+        assertThat(trend.get(1).getTown()).isEqualTo("TAMPINES");
+        assertThat(trend.get(1).getPricePerSqm().doubleValue()).isCloseTo(4444.44, within(1.0));
+    }
+
+    @Test
+    void areaTrendGroupsByMonthChronologically() {
+        var trend = insightsRepository.areaTrend("month");
+
+        assertThat(trend).hasSize(2);
+        assertThat(trend.get(0).getPeriod()).isEqualTo("2023-01");
+        assertThat(trend.get(0).getTransactionCount()).isEqualTo(2);
+        assertThat(trend.get(0).getMedianArea()).isEqualByComparingTo(new BigDecimal("90.0"));
+        assertThat(trend.get(1).getPeriod()).isEqualTo("2023-02");
+        assertThat(trend.get(1).getTransactionCount()).isEqualTo(2);
+    }
+
+    @Test
     void averagePriceByRemainingLeaseParsesWholeYearsFromLeaseString() {
         var byRemainingLease = insightsRepository.averagePriceByRemainingLease();
 

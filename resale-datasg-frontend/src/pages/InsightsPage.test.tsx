@@ -22,6 +22,16 @@ describe('InsightsPage', () => {
     )
   })
 
+  it('shows highest/lowest/average summary stats above the chart', async () => {
+    renderWithProviders(<InsightsPage />)
+
+    await screen.findByText('Highest')
+    expect(screen.getByText('Lowest')).toBeInTheDocument()
+    expect(screen.getByText('Average')).toBeInTheDocument()
+    expect(screen.getByText(/TAMPINES · 2023/)).toBeInTheDocument()
+    expect(screen.getByText(/ANG MO KIO · 2023/)).toBeInTheDocument()
+  })
+
   it('toggles a town off and back on when clicked in the sidebar', async () => {
     renderWithProviders(<InsightsPage />)
 
@@ -102,6 +112,81 @@ describe('InsightsPage', () => {
       expect(screen.getByRole('img', { name: /lowest resale price comparison between towns/i })).toBeInTheDocument(),
     )
     expect(screen.getByRole('button', { name: 'Lowest Price' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'BEDOK' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('switches the Towns chart to the median price view via the metric toggle', async () => {
+    renderWithProviders(<InsightsPage />)
+
+    await screen.findByRole('button', { name: 'BEDOK' })
+    await userEvent.click(screen.getByRole('button', { name: 'Median Price' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('img', { name: /median resale price comparison between towns/i })).toBeInTheDocument(),
+    )
+    expect(screen.getByRole('button', { name: 'Median Price' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'BEDOK' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('switches the Towns chart to the transaction count view via the metric toggle', async () => {
+    renderWithProviders(<InsightsPage />)
+
+    await screen.findByRole('button', { name: 'BEDOK' })
+    await userEvent.click(screen.getByRole('button', { name: 'Transaction Count' }))
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('img', { name: /number of transactions comparison between towns/i }),
+      ).toBeInTheDocument(),
+    )
+    expect(screen.getByRole('button', { name: 'Transaction Count' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'BEDOK' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('switches the Flat Types chart to the transaction count view via the metric toggle', async () => {
+    renderWithProviders(<InsightsPage />)
+
+    await screen.findByRole('button', { name: 'BEDOK' })
+    await userEvent.click(screen.getByRole('button', { name: 'Flat Types' }))
+    await screen.findByRole('button', { name: '4 ROOM' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Transaction Count' }))
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('img', { name: /number of transactions comparison between flat types/i }),
+      ).toBeInTheDocument(),
+    )
+    expect(screen.getByRole('button', { name: 'Transaction Count' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '4 ROOM' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('button', { name: 'Highest Price' })).not.toBeInTheDocument()
+  })
+
+  it('switches to the Area chart when that nav item is clicked', async () => {
+    renderWithProviders(<InsightsPage />)
+
+    await screen.findByRole('button', { name: 'BEDOK' })
+    await userEvent.click(screen.getByRole('button', { name: 'Area' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('img', { name: /median floor area by month/i })).toBeInTheDocument(),
+    )
+    expect(screen.queryByRole('button', { name: 'BEDOK' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'All' })).not.toBeInTheDocument()
+  })
+
+  it('switches the Towns chart to the price per SQM view via the metric toggle', async () => {
+    renderWithProviders(<InsightsPage />)
+
+    await screen.findByRole('button', { name: 'BEDOK' })
+    await userEvent.click(screen.getByRole('button', { name: 'Price per SQM' }))
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('img', { name: /average price per square metre comparison between towns/i }),
+      ).toBeInTheDocument(),
+    )
+    expect(screen.getByRole('button', { name: 'Price per SQM' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'BEDOK' })).toHaveAttribute('aria-pressed', 'true')
   })
 })

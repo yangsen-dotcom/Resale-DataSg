@@ -1,10 +1,13 @@
 import { fetchJson } from './client'
 import type {
+  AreaTrendPointResponse,
   FlatTypePriceTrendPointResponse,
   RemainingLeasePriceResponse,
   TownAveragePriceResponse,
   TownMaxPriceTrendPointResponse,
+  TownMedianPriceTrendPointResponse,
   TownMinPriceTrendPointResponse,
+  TownPricePerSqmTrendPointResponse,
   TownPriceTrendPointResponse,
 } from './types'
 
@@ -29,6 +32,20 @@ export function getMaxPriceTrendByTown(groupBy: 'month' | 'year'): Promise<TownM
 
 export function getMinPriceTrendByTown(groupBy: 'month' | 'year'): Promise<TownMinPriceTrendPointResponse[]> {
   return fetchJson<TownMinPriceTrendPointResponse[]>('/api/insights/min-price-trend-by-town', { groupBy })
+}
+
+export function getMedianPriceTrendByTown(groupBy: 'month' | 'year'): Promise<TownMedianPriceTrendPointResponse[]> {
+  return fetchJson<TownMedianPriceTrendPointResponse[]>('/api/insights/median-price-trend-by-town', { groupBy })
+}
+
+export function getPricePerSqmTrendByTown(
+  groupBy: 'month' | 'year',
+): Promise<TownPricePerSqmTrendPointResponse[]> {
+  return fetchJson<TownPricePerSqmTrendPointResponse[]>('/api/insights/price-per-sqm-trend-by-town', { groupBy })
+}
+
+export function getAreaTrend(groupBy: 'month' | 'year'): Promise<AreaTrendPointResponse[]> {
+  return fetchJson<AreaTrendPointResponse[]>('/api/insights/area-trend', { groupBy })
 }
 
 export function getAveragePriceByRemainingLease(): Promise<RemainingLeasePriceResponse[]> {

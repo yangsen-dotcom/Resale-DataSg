@@ -42,6 +42,20 @@ export interface TownMinPriceTrendPointResponse {
   transactionCount: number
 }
 
+export interface TownMedianPriceTrendPointResponse {
+  town: string
+  period: string
+  medianPrice: number
+  transactionCount: number
+}
+
+export interface TownPricePerSqmTrendPointResponse {
+  town: string
+  period: string
+  pricePerSqm: number
+  transactionCount: number
+}
+
 export interface FlatTypePriceTrendPointResponse {
   flatType: string
   period: string
@@ -52,6 +66,12 @@ export interface FlatTypePriceTrendPointResponse {
 export interface RemainingLeasePriceResponse {
   remainingLeaseYears: number
   averagePrice: number
+  transactionCount: number
+}
+
+export interface AreaTrendPointResponse {
+  period: string
+  medianArea: number
   transactionCount: number
 }
 

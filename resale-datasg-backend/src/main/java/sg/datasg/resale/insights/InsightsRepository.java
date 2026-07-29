@@ -90,6 +90,38 @@ public interface InsightsRepository extends Repository<ResaleTransaction, Long> 
 
     @Query(nativeQuery = true, value = """
         SELECT
+          town AS town,
+          CASE WHEN :unit = 'year' THEN to_char(bucket, 'YYYY')
+               ELSE to_char(bucket, 'YYYY-MM') END AS period,
+          percentile_cont(0.5) WITHIN GROUP (ORDER BY resale_price) AS medianPrice,
+          count(*) AS transactionCount
+        FROM (
+          SELECT town, date_trunc(:unit, month) AS bucket, resale_price
+          FROM resale_transaction
+        ) bucketed
+        GROUP BY town, bucket
+        ORDER BY town, bucket
+        """)
+    List<TownMedianPriceTrendProjection> medianPriceTrendByTown(@Param("unit") String unit);
+
+    @Query(nativeQuery = true, value = """
+        SELECT
+          town AS town,
+          CASE WHEN :unit = 'year' THEN to_char(bucket, 'YYYY')
+               ELSE to_char(bucket, 'YYYY-MM') END AS period,
+          avg(resale_price / floor_area_sqm) AS pricePerSqm,
+          count(*) AS transactionCount
+        FROM (
+          SELECT town, date_trunc(:unit, month) AS bucket, resale_price, floor_area_sqm
+          FROM resale_transaction
+        ) bucketed
+        GROUP BY town, bucket
+        ORDER BY town, bucket
+        """)
+    List<TownPricePerSqmTrendProjection> pricePerSqmTrendByTown(@Param("unit") String unit);
+
+    @Query(nativeQuery = true, value = """
+        SELECT
           flat_type AS flatType,
           CASE WHEN :unit = 'year' THEN to_char(bucket, 'YYYY')
                ELSE to_char(bucket, 'YYYY-MM') END AS period,
@@ -103,6 +135,21 @@ public interface InsightsRepository extends Repository<ResaleTransaction, Long> 
         ORDER BY flat_type, bucket
         """)
     List<FlatTypePriceTrendProjection> priceTrendByFlatType(@Param("unit") String unit);
+
+    @Query(nativeQuery = true, value = """
+        SELECT
+          CASE WHEN :unit = 'year' THEN to_char(bucket, 'YYYY')
+               ELSE to_char(bucket, 'YYYY-MM') END AS period,
+          percentile_cont(0.5) WITHIN GROUP (ORDER BY floor_area_sqm) AS medianArea,
+          count(*) AS transactionCount
+        FROM (
+          SELECT date_trunc(:unit, month) AS bucket, floor_area_sqm
+          FROM resale_transaction
+        ) bucketed
+        GROUP BY bucket
+        ORDER BY bucket
+        """)
+    List<AreaTrendProjection> areaTrend(@Param("unit") String unit);
 
     @Query(nativeQuery = true, value = """
         SELECT

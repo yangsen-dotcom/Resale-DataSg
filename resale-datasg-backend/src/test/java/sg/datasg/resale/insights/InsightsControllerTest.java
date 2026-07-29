@@ -226,4 +226,14 @@ class InsightsControllerTest {
         mockMvc.perform(get("/api/insights/price-trend").param("groupBy", "week"))
             .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void unexpectedExceptionReturnsCleanJson500NotAServerErrorPage() throws Exception {
+        when(insightsService.priceTrendByTown("year")).thenThrow(new RuntimeException("cache backend unreachable"));
+
+        mockMvc.perform(get("/api/insights/price-trend-by-town").param("groupBy", "year"))
+            .andExpect(status().isInternalServerError())
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.detail").value("An unexpected error occurred."));
+    }
 }

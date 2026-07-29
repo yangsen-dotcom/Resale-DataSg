@@ -1,5 +1,7 @@
 package sg.datasg.resale.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -8,6 +10,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
@@ -31,5 +35,18 @@ public class ApiExceptionHandler {
             .reduce((a, b) -> a + "; " + b)
             .orElse("Validation failed");
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
+    }
+
+    /**
+     * Catch-all for anything not handled above (e.g. a Redis cache read failing
+     * with an exception a future Spring/driver version doesn't wrap the way
+     * {@code CacheErrorHandler} expects). Without this, an unexpected exception
+     * falls through to the servlet container's default error page instead of a
+     * JSON body, and the client sees an HTML stack trace instead of a clean 500.
+     */
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleUnexpected(Exception ex) {
+        log.error("Unhandled exception", ex);
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.");
     }
 }

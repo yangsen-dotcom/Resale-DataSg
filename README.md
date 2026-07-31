@@ -3,6 +3,10 @@
 A full-stack web app for exploring and analysing Singapore HDB resale flat
 transactions, sourced live from [data.gov.sg](https://data.gov.sg).
 
+📺 [Feature walkthrough](docs/feature-walkthrough.html) — screenshots of every
+page (Explore, Insights, Map) plus an unnarrated video, captured live via
+Playwright. Open the HTML file locally in a browser to view.
+
 ## Project structure
 
 ```

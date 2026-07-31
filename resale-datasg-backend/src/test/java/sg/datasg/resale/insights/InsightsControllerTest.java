@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import sg.datasg.resale.insights.dto.AreaTrendPointResponse;
 import sg.datasg.resale.insights.dto.FlatTypePriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.RemainingLeasePriceResponse;
+import sg.datasg.resale.insights.dto.StoreyRangePriceResponse;
 import sg.datasg.resale.insights.dto.SummaryStatsResponse;
 import sg.datasg.resale.insights.dto.TownAveragePriceResponse;
 import sg.datasg.resale.insights.dto.TownMaxPriceTrendPointResponse;
@@ -216,6 +217,19 @@ class InsightsControllerTest {
             .andExpect(jsonPath("$[0].remainingLeaseYears").value(60))
             .andExpect(jsonPath("$[0].averagePrice").value(400000.00))
             .andExpect(jsonPath("$[1].remainingLeaseYears").value(61));
+    }
+
+    @Test
+    void averagePriceByStoreyRangeReturnsRankedByRange() throws Exception {
+        when(insightsService.averagePriceByStoreyRange()).thenReturn(List.of(
+            new StoreyRangePriceResponse("01 TO 03", new BigDecimal("400000.00"), 1200),
+            new StoreyRangePriceResponse("04 TO 06", new BigDecimal("420000.00"), 900)));
+
+        mockMvc.perform(get("/api/insights/average-price-by-storey-range"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].storeyRange").value("01 TO 03"))
+            .andExpect(jsonPath("$[0].averagePrice").value(400000.00))
+            .andExpect(jsonPath("$[1].storeyRange").value("04 TO 06"));
     }
 
     @Test

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   getAreaTrend,
   getAveragePriceByRemainingLease,
+  getAveragePriceByStoreyRange,
   getByTown,
   getMaxPriceTrendByTown,
   getMedianPriceTrendByTown,
@@ -79,6 +80,15 @@ export function useAveragePriceByRemainingLease(enabled = true) {
   return useQuery({
     queryKey: ['insights', 'average-price-by-remaining-lease'],
     queryFn: getAveragePriceByRemainingLease,
+    staleTime: 10 * 60 * 1000,
+    enabled,
+  })
+}
+
+export function useAveragePriceByStoreyRange(enabled = true) {
+  return useQuery({
+    queryKey: ['insights', 'average-price-by-storey-range'],
+    queryFn: getAveragePriceByStoreyRange,
     staleTime: 10 * 60 * 1000,
     enabled,
   })

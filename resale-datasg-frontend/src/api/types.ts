@@ -69,6 +69,12 @@ export interface RemainingLeasePriceResponse {
   transactionCount: number
 }
 
+export interface StoreyRangePriceResponse {
+  storeyRange: string
+  averagePrice: number
+  transactionCount: number
+}
+
 export interface AreaTrendPointResponse {
   period: string
   medianArea: number

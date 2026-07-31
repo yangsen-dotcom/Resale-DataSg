@@ -15,6 +15,7 @@ import sg.datasg.resale.insights.dto.FlatTypeAveragePriceResponse;
 import sg.datasg.resale.insights.dto.FlatTypePriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.PriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.RemainingLeasePriceResponse;
+import sg.datasg.resale.insights.dto.StoreyRangePriceResponse;
 import sg.datasg.resale.insights.dto.SummaryStatsResponse;
 import sg.datasg.resale.insights.dto.TownAveragePriceResponse;
 import sg.datasg.resale.insights.dto.TownMaxPriceTrendPointResponse;
@@ -152,6 +153,14 @@ public class InsightsService {
     public List<RemainingLeasePriceResponse> averagePriceByRemainingLease() {
         return repository.averagePriceByRemainingLease().stream()
             .map(p -> new RemainingLeasePriceResponse(p.getRemainingLeaseYears(), round(p.getAveragePrice()),
+                p.getTransactionCount()))
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    @Cacheable(InsightsCacheNames.AVERAGE_PRICE_BY_STOREY_RANGE)
+    public List<StoreyRangePriceResponse> averagePriceByStoreyRange() {
+        return repository.averagePriceByStoreyRange().stream()
+            .map(p -> new StoreyRangePriceResponse(p.getStoreyRange(), round(p.getAveragePrice()),
                 p.getTransactionCount()))
             .collect(Collectors.toCollection(ArrayList::new));
     }

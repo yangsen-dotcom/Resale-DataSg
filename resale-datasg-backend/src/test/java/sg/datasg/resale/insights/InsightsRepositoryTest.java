@@ -190,6 +190,16 @@ class InsightsRepositoryTest {
     }
 
     @Test
+    void averagePriceByStoreyRangeGroupsByRange() {
+        var byStoreyRange = insightsRepository.averagePriceByStoreyRange();
+
+        assertThat(byStoreyRange).hasSize(1);
+        assertThat(byStoreyRange.get(0).getStoreyRange()).isEqualTo("01 TO 03");
+        assertThat(byStoreyRange.get(0).getTransactionCount()).isEqualTo(4);
+        assertThat(byStoreyRange.get(0).getAveragePrice()).isEqualByComparingTo(new BigDecimal("250000"));
+    }
+
+    @Test
     void averagePriceByTownRanksDescending() {
         var byTown = insightsRepository.averagePriceByTown(null, null, null);
 

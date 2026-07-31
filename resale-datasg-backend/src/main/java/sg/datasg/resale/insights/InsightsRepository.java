@@ -164,6 +164,17 @@ public interface InsightsRepository extends Repository<ResaleTransaction, Long> 
 
     @Query(nativeQuery = true, value = """
         SELECT
+          storey_range AS storeyRange,
+          avg(resale_price) AS averagePrice,
+          count(*) AS transactionCount
+        FROM resale_transaction
+        GROUP BY storey_range
+        ORDER BY storey_range
+        """)
+    List<StoreyRangeProjection> averagePriceByStoreyRange();
+
+    @Query(nativeQuery = true, value = """
+        SELECT
           town AS town,
           avg(resale_price) AS averagePrice,
           count(*) AS transactionCount

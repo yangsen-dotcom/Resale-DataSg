@@ -3,6 +3,7 @@ import type {
   AreaTrendPointResponse,
   FlatTypePriceTrendPointResponse,
   RemainingLeasePriceResponse,
+  StoreyRangePriceResponse,
   TownAveragePriceResponse,
   TownMaxPriceTrendPointResponse,
   TownMedianPriceTrendPointResponse,
@@ -50,6 +51,10 @@ export function getAreaTrend(groupBy: 'month' | 'year'): Promise<AreaTrendPointR
 
 export function getAveragePriceByRemainingLease(): Promise<RemainingLeasePriceResponse[]> {
   return fetchJson<RemainingLeasePriceResponse[]>('/api/insights/average-price-by-remaining-lease')
+}
+
+export function getAveragePriceByStoreyRange(): Promise<StoreyRangePriceResponse[]> {
+  return fetchJson<StoreyRangePriceResponse[]>('/api/insights/average-price-by-storey-range')
 }
 
 export function getByTown(

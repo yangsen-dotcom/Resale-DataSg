@@ -4,12 +4,14 @@ import { ChartSummaryStats, type SummaryStatItem } from '../components/insights/
 import { ComparisonLegend } from '../components/insights/ComparisonLegend'
 import { ComparisonLineChart, type ComparisonPoint } from '../components/insights/ComparisonLineChart'
 import { RemainingLeaseChart } from '../components/insights/RemainingLeaseChart'
+import { StoreyRangeChart } from '../components/insights/StoreyRangeChart'
 import { LoadingState } from '../components/common/LoadingState'
 import { ErrorState } from '../components/common/ErrorState'
 import { useFlatTypes, useTowns } from '../hooks/useFilterOptions'
 import {
   useAreaTrend,
   useAveragePriceByRemainingLease,
+  useAveragePriceByStoreyRange,
   useMaxPriceTrendByTown,
   useMedianPriceTrendByTown,
   useMinPriceTrendByTown,
@@ -21,7 +23,7 @@ import { buildColorScale } from '../components/insights/seriesColors'
 import { CURRENCY_COMPACT, NUMBER_COMPACT } from '../components/insights/chartUtils'
 import styles from './InsightsPage.module.css'
 
-type Dimension = 'town' | 'flatType' | 'remainingLease' | 'area'
+type Dimension = 'town' | 'flatType' | 'remainingLease' | 'storeyRange' | 'area'
 type MetricOption = 'average' | 'highest' | 'lowest' | 'median' | 'count' | 'psm'
 
 const METRIC_LABEL: Record<MetricOption, string> = {
@@ -57,6 +59,7 @@ const DIMENSION_LABEL: Record<Dimension, string> = {
   town: 'Towns',
   flatType: 'Flat Types',
   remainingLease: 'Remain Lease',
+  storeyRange: 'Storey Range',
   area: 'Area',
 }
 
@@ -77,6 +80,7 @@ export function InsightsPage() {
   const isCount =
     (dimension === 'town' && townMetric === 'count') || (dimension === 'flatType' && flatTypeMetric === 'count')
   const isRemainingLease = dimension === 'remainingLease'
+  const isStoreyRange = dimension === 'storeyRange'
   const isArea = dimension === 'area'
 
   const townsQuery = useTowns()
@@ -91,6 +95,7 @@ export function InsightsPage() {
   const townPsmTrendQuery = usePricePerSqmTrendByTown('month', isTownPsm)
   const flatTypeTrendQuery = usePriceTrendByFlatType('month', dimension === 'flatType')
   const remainingLeaseQuery = useAveragePriceByRemainingLease(isRemainingLease)
+  const storeyRangeQuery = useAveragePriceByStoreyRange(isStoreyRange)
   const areaTrendQuery = useAreaTrend('month', isArea)
 
   const keysQuery = dimension === 'flatType' ? flatTypesQuery : townsQuery
@@ -198,6 +203,33 @@ export function InsightsPage() {
       ]
     }
 
+    if (isStoreyRange) {
+      const points = storeyRangeQuery.data ?? []
+      if (points.length === 0) {
+        return []
+      }
+      const highest = points.reduce((a, b) => (b.averagePrice > a.averagePrice ? b : a))
+      const lowest = points.reduce((a, b) => (b.averagePrice < a.averagePrice ? b : a))
+      const average = points.reduce((sum, p) => sum + p.averagePrice, 0) / points.length
+      return [
+        {
+          label: 'Highest',
+          value: CURRENCY_COMPACT.format(highest.averagePrice),
+          sublabel: `Storey ${highest.storeyRange}`,
+        },
+        {
+          label: 'Lowest',
+          value: CURRENCY_COMPACT.format(lowest.averagePrice),
+          sublabel: `Storey ${lowest.storeyRange}`,
+        },
+        {
+          label: 'Average',
+          value: CURRENCY_COMPACT.format(average),
+          sublabel: `across ${points.length} storey ranges`,
+        },
+      ]
+    }
+
     const points = remainingLeaseQuery.data ?? []
     if (points.length === 0) {
       return []
@@ -222,7 +254,18 @@ export function InsightsPage() {
         sublabel: `across ${points.length} lease-year buckets`,
       },
     ]
-  }, [isCategorical, chartData, visibleKeys, isCount, dimension, isArea, remainingLeaseQuery.data, areaTrendQuery.data])
+  }, [
+    isCategorical,
+    chartData,
+    visibleKeys,
+    isCount,
+    dimension,
+    isArea,
+    isStoreyRange,
+    remainingLeaseQuery.data,
+    storeyRangeQuery.data,
+    areaTrendQuery.data,
+  ])
 
   function toggleKey(key: string) {
     setVisibleKeys((prev) => {
@@ -246,12 +289,16 @@ export function InsightsPage() {
     ? keysQuery.isLoading || trendQuery.isLoading
     : isArea
       ? areaTrendQuery.isLoading
-      : remainingLeaseQuery.isLoading
+      : isStoreyRange
+        ? storeyRangeQuery.isLoading
+        : remainingLeaseQuery.isLoading
   const isReady = isCategorical
     ? keysQuery.isSuccess && trendQuery.isSuccess
     : isArea
       ? areaTrendQuery.isSuccess
-      : remainingLeaseQuery.isSuccess
+      : isStoreyRange
+        ? storeyRangeQuery.isSuccess
+        : remainingLeaseQuery.isSuccess
 
   return (
     <div>
@@ -265,6 +312,8 @@ export function InsightsPage() {
             </>
           ) : isArea ? (
             'Track the median floor area (sqm) of resold flats by month.'
+          ) : isStoreyRange ? (
+            'Compare average resale price across storey ranges.'
           ) : (
             'Compare average resale price against how many years remain on the flat’s lease.'
           )}
@@ -280,6 +329,9 @@ export function InsightsPage() {
       )}
       {!isCategorical && isRemainingLease && remainingLeaseQuery.isError && (
         <ErrorState message="Failed to load remaining lease data." onRetry={() => remainingLeaseQuery.refetch()} />
+      )}
+      {!isCategorical && isStoreyRange && storeyRangeQuery.isError && (
+        <ErrorState message="Failed to load storey range data." onRetry={() => storeyRangeQuery.refetch()} />
       )}
       {!isCategorical && isArea && areaTrendQuery.isError && (
         <ErrorState message="Failed to load area data." onRetry={() => areaTrendQuery.refetch()} />
@@ -347,6 +399,11 @@ export function InsightsPage() {
               <AreaTrendChart
                 data={areaTrendQuery.data ?? []}
                 description="Floor Area: Median floor area (sqm) by month, across all resale transactions."
+              />
+            ) : isStoreyRange ? (
+              <StoreyRangeChart
+                data={storeyRangeQuery.data ?? []}
+                description="Resale Prices: Average price by storey range."
               />
             ) : (
               <RemainingLeaseChart

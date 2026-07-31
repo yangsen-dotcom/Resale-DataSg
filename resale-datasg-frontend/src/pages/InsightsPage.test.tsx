@@ -85,6 +85,19 @@ describe('InsightsPage', () => {
     expect(screen.queryByRole('button', { name: 'All' })).not.toBeInTheDocument()
   })
 
+  it('switches to the Storey Range chart when that nav item is clicked', async () => {
+    renderWithProviders(<InsightsPage />)
+
+    await screen.findByRole('button', { name: 'BEDOK' })
+    await userEvent.click(screen.getByRole('button', { name: 'Storey Range' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('img', { name: /average resale price by storey range/i })).toBeInTheDocument(),
+    )
+    expect(screen.queryByRole('button', { name: 'BEDOK' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'All' })).not.toBeInTheDocument()
+  })
+
   it('switches the Towns chart to the highest price view via the metric toggle', async () => {
     renderWithProviders(<InsightsPage />)
 

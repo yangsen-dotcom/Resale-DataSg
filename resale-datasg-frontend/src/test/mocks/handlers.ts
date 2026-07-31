@@ -106,6 +106,14 @@ export const handlers = [
     ])
   }),
 
+  http.get(`${API_BASE_URL}/api/insights/average-price-by-storey-range`, () => {
+    return HttpResponse.json([
+      { storeyRange: '01 TO 03', averagePrice: 400000, transactionCount: 1200 },
+      { storeyRange: '04 TO 06', averagePrice: 420000, transactionCount: 900 },
+      { storeyRange: '07 TO 09', averagePrice: 440000, transactionCount: 700 },
+    ])
+  }),
+
   http.get(`${API_BASE_URL}/api/insights/by-town`, () => {
     return HttpResponse.json([{ town: 'BEDOK', averagePrice: 498000, transactionCount: 5230 }])
   }),

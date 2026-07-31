@@ -32,9 +32,12 @@ Resale-DataSg/
 │   │   ├── state/                    # In-memory filter state (not URL-persisted)
 │   │   └── styles/                   # Design tokens
 │   └── Dockerfile
+├── e2e/                               # Cross-browser Playwright tests (Chromium/Firefox/WebKit)
+│   ├── fixtures/api.ts               # Mocks the API at the network boundary — no backend needed
+│   └── tests/                        # explore/insights/map specs
 ├── infra/terraform/                  # AWS infrastructure as code (never applied — see its README)
 ├── docker-compose.yml                # Local Postgres + Redis, plus an optional full-stack container profile
-└── .github/workflows/ci.yml          # Build + test both projects, validate Terraform
+└── .github/workflows/ci.yml          # Build + test all three projects, validate Terraform
 ```
 
 ## Architecture
@@ -104,6 +107,7 @@ The Insights chart endpoints are additionally cached in Redis (see
 | Routing | react-router-dom | Three pages (Explore, Insights, Map); filter/selection state is kept in memory, not the URL — picking a filter re-fetches and updates in place instead of navigating |
 | Backend tests | JUnit 5, Mockito, Testcontainers (Postgres, Redis) | Real Postgres-specific SQL and real cache behaviour are exercised, not simulated against H2 or an in-memory cache |
 | Frontend tests | Vitest, React Testing Library, MSW | Component behaviour and API-mocked integration paths |
+| E2E tests | Playwright (Chromium, Firefox, WebKit) | Real browser engines, not jsdom — catches rendering/interaction differences Vitest can't see |
 | IaC | Terraform | Industry-standard, declarative, reviewable without applying |
 
 ## Dataset
@@ -283,8 +287,27 @@ npm run test -- --run
 npm run build
 ```
 
-Both run in CI on every push (`.github/workflows/ci.yml`), along with
-`terraform fmt`/`validate` on the IaC.
+**End-to-end** (`e2e/`), cross-browser via Playwright:
+```bash
+cd e2e
+npm install
+npx playwright install chromium firefox webkit   # first run only
+npm run test:e2e
+```
+Runs against the real production bundle (`vite build` + `vite preview`, the
+same output the Docker image serves) in real Chromium, Firefox, and WebKit
+engines — not the jsdom simulation Vitest uses. The API is intercepted and
+mocked at the network boundary (`e2e/fixtures/api.ts`, same response shapes as
+the frontend's own MSW handlers), so no backend, Postgres, Redis, or network
+access to data.gov.sg is required; `playwright.config.ts`'s `webServer` builds
+and serves the frontend automatically. Covers the three pages end to end:
+Explore (filter, sort, paginate), Insights (all six comparison dimensions),
+and Map (town → block → transactions drill-down). `npm run test:e2e:ui` opens
+Playwright's interactive UI mode; `npm run test:e2e:headed` runs with a
+visible browser window.
+
+All three (backend, frontend, e2e) run in CI on every push
+(`.github/workflows/ci.yml`), along with `terraform fmt`/`validate` on the IaC.
 
 ## AWS architecture (not deployed)
 

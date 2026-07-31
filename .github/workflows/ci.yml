@@ -57,6 +57,43 @@ jobs:
         working-directory: resale-datasg-frontend
         run: npm run build
 
+  e2e:
+    name: E2E (Playwright, cross-browser)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install frontend dependencies
+        working-directory: resale-datasg-frontend
+        run: npm install
+
+      - name: Install e2e dependencies
+        working-directory: e2e
+        run: npm install
+
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      # webServer in playwright.config.ts builds and previews the frontend
+      # itself; the API is mocked in fixtures/api.ts, so no backend, Postgres,
+      # Redis, or network access to data.gov.sg is needed for this job.
+      - name: Run Playwright tests
+        working-directory: e2e
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 14
+
   terraform:
     name: Terraform (fmt + validate)
     runs-on: ubuntu-latest

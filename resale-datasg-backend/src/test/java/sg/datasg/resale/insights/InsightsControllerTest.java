@@ -21,6 +21,7 @@ import sg.datasg.resale.insights.dto.RemainingLeasePriceResponse;
 import sg.datasg.resale.insights.dto.StoreyRangePriceResponse;
 import sg.datasg.resale.insights.dto.SummaryStatsResponse;
 import sg.datasg.resale.insights.dto.TownAveragePriceResponse;
+import sg.datasg.resale.insights.dto.TownFlatTypeAveragePriceResponse;
 import sg.datasg.resale.insights.dto.TownMaxPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMedianPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
@@ -233,12 +234,33 @@ class InsightsControllerTest {
     }
 
     @Test
+    void averagePriceByTownAndFlatTypeReturnsAllCombinations() throws Exception {
+        when(insightsService.averagePriceByTownAndFlatType()).thenReturn(List.of(
+            new TownFlatTypeAveragePriceResponse("BEDOK", "3 ROOM", new BigDecimal("380000.00"), 1200),
+            new TownFlatTypeAveragePriceResponse("BEDOK", "4 ROOM", new BigDecimal("498000.00"), 900)));
+
+        mockMvc.perform(get("/api/insights/average-price-by-town-and-flat-type"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].town").value("BEDOK"))
+            .andExpect(jsonPath("$[0].flatType").value("3 ROOM"))
+            .andExpect(jsonPath("$[0].averagePrice").value(380000.00))
+            .andExpect(jsonPath("$[1].flatType").value("4 ROOM"));
+    }
+
+    @Test
     void priceTrendRejectsInvalidGroupBy() throws Exception {
         when(insightsService.priceTrend(eq("week"), any(), any()))
             .thenThrow(new IllegalArgumentException("Invalid groupBy"));
 
         mockMvc.perform(get("/api/insights/price-trend").param("groupBy", "week"))
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void unmappedPathReturnsCleanJson404NotA500() throws Exception {
+        mockMvc.perform(get("/api/insights/does-not-exist"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.status").value(404));
     }
 
     @Test

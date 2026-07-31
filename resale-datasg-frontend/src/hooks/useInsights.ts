@@ -3,6 +3,7 @@ import {
   getAreaTrend,
   getAveragePriceByRemainingLease,
   getAveragePriceByStoreyRange,
+  getAveragePriceByTownAndFlatType,
   getByTown,
   getMaxPriceTrendByTown,
   getMedianPriceTrendByTown,
@@ -89,6 +90,15 @@ export function useAveragePriceByStoreyRange(enabled = true) {
   return useQuery({
     queryKey: ['insights', 'average-price-by-storey-range'],
     queryFn: getAveragePriceByStoreyRange,
+    staleTime: 10 * 60 * 1000,
+    enabled,
+  })
+}
+
+export function useAveragePriceByTownAndFlatType(enabled = true) {
+  return useQuery({
+    queryKey: ['insights', 'average-price-by-town-and-flat-type'],
+    queryFn: getAveragePriceByTownAndFlatType,
     staleTime: 10 * 60 * 1000,
     enabled,
   })

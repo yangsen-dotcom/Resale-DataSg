@@ -87,6 +87,13 @@ export interface TownAveragePriceResponse {
   transactionCount: number
 }
 
+export interface TownFlatTypeAveragePriceResponse {
+  town: string
+  flatType: string
+  averagePrice: number
+  transactionCount: number
+}
+
 export interface BlockOptionResponse {
   block: string
   streetName: string

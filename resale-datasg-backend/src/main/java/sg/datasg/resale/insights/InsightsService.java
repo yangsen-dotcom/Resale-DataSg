@@ -18,6 +18,7 @@ import sg.datasg.resale.insights.dto.RemainingLeasePriceResponse;
 import sg.datasg.resale.insights.dto.StoreyRangePriceResponse;
 import sg.datasg.resale.insights.dto.SummaryStatsResponse;
 import sg.datasg.resale.insights.dto.TownAveragePriceResponse;
+import sg.datasg.resale.insights.dto.TownFlatTypeAveragePriceResponse;
 import sg.datasg.resale.insights.dto.TownMaxPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMedianPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
@@ -161,6 +162,14 @@ public class InsightsService {
     public List<StoreyRangePriceResponse> averagePriceByStoreyRange() {
         return repository.averagePriceByStoreyRange().stream()
             .map(p -> new StoreyRangePriceResponse(p.getStoreyRange(), round(p.getAveragePrice()),
+                p.getTransactionCount()))
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    @Cacheable(InsightsCacheNames.AVERAGE_PRICE_BY_TOWN_AND_FLAT_TYPE)
+    public List<TownFlatTypeAveragePriceResponse> averagePriceByTownAndFlatType() {
+        return repository.averagePriceByTownAndFlatType().stream()
+            .map(p -> new TownFlatTypeAveragePriceResponse(p.getTown(), p.getFlatType(), round(p.getAveragePrice()),
                 p.getTransactionCount()))
             .collect(Collectors.toCollection(ArrayList::new));
     }

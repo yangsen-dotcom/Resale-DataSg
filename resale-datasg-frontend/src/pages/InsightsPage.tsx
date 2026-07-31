@@ -5,6 +5,7 @@ import { ComparisonLegend } from '../components/insights/ComparisonLegend'
 import { ComparisonLineChart, type ComparisonPoint } from '../components/insights/ComparisonLineChart'
 import { RemainingLeaseChart } from '../components/insights/RemainingLeaseChart'
 import { StoreyRangeChart } from '../components/insights/StoreyRangeChart'
+import { TownFlatTypeHeatmap } from '../components/insights/TownFlatTypeHeatmap'
 import { LoadingState } from '../components/common/LoadingState'
 import { ErrorState } from '../components/common/ErrorState'
 import { useFlatTypes, useTowns } from '../hooks/useFilterOptions'
@@ -12,6 +13,7 @@ import {
   useAreaTrend,
   useAveragePriceByRemainingLease,
   useAveragePriceByStoreyRange,
+  useAveragePriceByTownAndFlatType,
   useMaxPriceTrendByTown,
   useMedianPriceTrendByTown,
   useMinPriceTrendByTown,
@@ -23,7 +25,7 @@ import { buildColorScale } from '../components/insights/seriesColors'
 import { CURRENCY_COMPACT, NUMBER_COMPACT } from '../components/insights/chartUtils'
 import styles from './InsightsPage.module.css'
 
-type Dimension = 'town' | 'flatType' | 'remainingLease' | 'storeyRange' | 'area'
+type Dimension = 'town' | 'flatType' | 'remainingLease' | 'storeyRange' | 'townFlatType' | 'area'
 type MetricOption = 'average' | 'highest' | 'lowest' | 'median' | 'count' | 'psm'
 
 const METRIC_LABEL: Record<MetricOption, string> = {
@@ -60,6 +62,7 @@ const DIMENSION_LABEL: Record<Dimension, string> = {
   flatType: 'Flat Types',
   remainingLease: 'Remain Lease',
   storeyRange: 'Storey Range',
+  townFlatType: 'Town × Flat Type',
   area: 'Area',
 }
 
@@ -81,6 +84,7 @@ export function InsightsPage() {
     (dimension === 'town' && townMetric === 'count') || (dimension === 'flatType' && flatTypeMetric === 'count')
   const isRemainingLease = dimension === 'remainingLease'
   const isStoreyRange = dimension === 'storeyRange'
+  const isHeatmap = dimension === 'townFlatType'
   const isArea = dimension === 'area'
 
   const townsQuery = useTowns()
@@ -96,6 +100,7 @@ export function InsightsPage() {
   const flatTypeTrendQuery = usePriceTrendByFlatType('month', dimension === 'flatType')
   const remainingLeaseQuery = useAveragePriceByRemainingLease(isRemainingLease)
   const storeyRangeQuery = useAveragePriceByStoreyRange(isStoreyRange)
+  const heatmapQuery = useAveragePriceByTownAndFlatType(isHeatmap)
   const areaTrendQuery = useAreaTrend('month', isArea)
 
   const keysQuery = dimension === 'flatType' ? flatTypesQuery : townsQuery
@@ -230,6 +235,33 @@ export function InsightsPage() {
       ]
     }
 
+    if (isHeatmap) {
+      const points = heatmapQuery.data ?? []
+      if (points.length === 0) {
+        return []
+      }
+      const highest = points.reduce((a, b) => (b.averagePrice > a.averagePrice ? b : a))
+      const lowest = points.reduce((a, b) => (b.averagePrice < a.averagePrice ? b : a))
+      const average = points.reduce((sum, p) => sum + p.averagePrice, 0) / points.length
+      return [
+        {
+          label: 'Highest',
+          value: CURRENCY_COMPACT.format(highest.averagePrice),
+          sublabel: `${highest.town} · ${highest.flatType}`,
+        },
+        {
+          label: 'Lowest',
+          value: CURRENCY_COMPACT.format(lowest.averagePrice),
+          sublabel: `${lowest.town} · ${lowest.flatType}`,
+        },
+        {
+          label: 'Average',
+          value: CURRENCY_COMPACT.format(average),
+          sublabel: `across ${points.length} town/flat type combinations`,
+        },
+      ]
+    }
+
     const points = remainingLeaseQuery.data ?? []
     if (points.length === 0) {
       return []
@@ -262,8 +294,10 @@ export function InsightsPage() {
     dimension,
     isArea,
     isStoreyRange,
+    isHeatmap,
     remainingLeaseQuery.data,
     storeyRangeQuery.data,
+    heatmapQuery.data,
     areaTrendQuery.data,
   ])
 
@@ -291,14 +325,18 @@ export function InsightsPage() {
       ? areaTrendQuery.isLoading
       : isStoreyRange
         ? storeyRangeQuery.isLoading
-        : remainingLeaseQuery.isLoading
+        : isHeatmap
+          ? heatmapQuery.isLoading
+          : remainingLeaseQuery.isLoading
   const isReady = isCategorical
     ? keysQuery.isSuccess && trendQuery.isSuccess
     : isArea
       ? areaTrendQuery.isSuccess
       : isStoreyRange
         ? storeyRangeQuery.isSuccess
-        : remainingLeaseQuery.isSuccess
+        : isHeatmap
+          ? heatmapQuery.isSuccess
+          : remainingLeaseQuery.isSuccess
 
   return (
     <div>
@@ -314,6 +352,8 @@ export function InsightsPage() {
             'Track the median floor area (sqm) of resold flats by month.'
           ) : isStoreyRange ? (
             'Compare average resale price across storey ranges.'
+          ) : isHeatmap ? (
+            'Compare average resale price across every town and flat type combination.'
           ) : (
             'Compare average resale price against how many years remain on the flat’s lease.'
           )}
@@ -332,6 +372,12 @@ export function InsightsPage() {
       )}
       {!isCategorical && isStoreyRange && storeyRangeQuery.isError && (
         <ErrorState message="Failed to load storey range data." onRetry={() => storeyRangeQuery.refetch()} />
+      )}
+      {!isCategorical && isHeatmap && heatmapQuery.isError && (
+        <ErrorState
+          message="Failed to load town / flat type data."
+          onRetry={() => heatmapQuery.refetch()}
+        />
       )}
       {!isCategorical && isArea && areaTrendQuery.isError && (
         <ErrorState message="Failed to load area data." onRetry={() => areaTrendQuery.refetch()} />
@@ -404,6 +450,11 @@ export function InsightsPage() {
               <StoreyRangeChart
                 data={storeyRangeQuery.data ?? []}
                 description="Resale Prices: Average price by storey range."
+              />
+            ) : isHeatmap ? (
+              <TownFlatTypeHeatmap
+                data={heatmapQuery.data ?? []}
+                description="Resale Prices: Average price by town and flat type."
               />
             ) : (
               <RemainingLeaseChart

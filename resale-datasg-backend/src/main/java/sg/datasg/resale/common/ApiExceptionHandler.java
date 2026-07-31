@@ -7,6 +7,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -16,6 +17,18 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    /**
+     * Thrown by Spring itself for any request path that matches no controller
+     * mapping and no static resource (e.g. a stale frontend build calling an
+     * endpoint an older backend doesn't have yet, or a typo'd URL). Without this,
+     * it falls through to {@link #handleUnexpected}, which mislabels a routine
+     * 404 as a 500 "unexpected error" and logs it at ERROR level.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ProblemDetail handleNoResourceFound(NoResourceFoundException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "No endpoint found for this request.");
     }
 
     @ExceptionHandler(IngestionInProgressException.class)

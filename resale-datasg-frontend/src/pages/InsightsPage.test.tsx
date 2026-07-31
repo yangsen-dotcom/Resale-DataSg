@@ -98,6 +98,22 @@ describe('InsightsPage', () => {
     expect(screen.queryByRole('button', { name: 'All' })).not.toBeInTheDocument()
   })
 
+  it('switches to the Town × Flat Type heatmap when that nav item is clicked', async () => {
+    renderWithProviders(<InsightsPage />)
+
+    await screen.findByRole('button', { name: 'BEDOK' })
+    await userEvent.click(screen.getByRole('button', { name: 'Town × Flat Type' }))
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('table', { name: /average resale price by town and flat type/i }),
+      ).toBeInTheDocument(),
+    )
+    expect(screen.getByRole('columnheader', { name: '3 ROOM' })).toBeInTheDocument()
+    expect(screen.getByRole('rowheader', { name: 'BEDOK' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'All' })).not.toBeInTheDocument()
+  })
+
   it('switches the Towns chart to the highest price view via the metric toggle', async () => {
     renderWithProviders(<InsightsPage />)
 

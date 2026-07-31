@@ -68,15 +68,18 @@ The Insights chart endpoints are additionally cached in Redis (see
   filters, a comma-formatted price range, a month range picker, a table sortable
   on all 9 relevant columns (click a header to sort, click again to reverse), a
   page-size selector, and a "go to page" input alongside standard pagination.
-- **Insights** (`/insights`) — a left-hand nav across five comparison
+- **Insights** (`/insights`) — a left-hand nav across six comparison
   dimensions: **Towns** (Average/Highest/Lowest/Median Price, Transaction Count,
   and Price per SQM, toggled via a pill control, each rendered as one line per
   town with a click-to-show/hide legend), **Flat Types** (Average Price /
   Transaction Count), **Remain Lease** (average price by remaining-lease-year
   bucket), **Storey Range** (average price by storey-range bucket, e.g. "01 TO
-  03"), and **Area** (median floor area by month). Every chart shows
-  highest/lowest/average summary stat tiles above it, and the SVG charts have a
-  cursor-following tooltip rather than a fixed-position one.
+  03"), **Town × Flat Type** (a heatmap grid of average price across both
+  dimensions at once, sequential-blue color scale, sorted by each town's
+  overall average so the priciest towns lead), and **Area** (median floor area
+  by month). Every chart shows highest/lowest/average summary stat tiles above
+  it, and the line/area charts have a cursor-following tooltip while the
+  heatmap has a per-cell hover tooltip.
 - **Map** (`/map`) — a Leaflet map with a marker per town (positioned at
   approximate real-world centroids, see `src/data/townCoordinates.ts`); clicking
   a town (or picking one from the dropdown) reveals its blocks, and picking a
@@ -182,6 +185,7 @@ reference. Summary:
 | GET | `/api/insights/area-trend` | Median floor area (sqm) per year (or month), overall — powers the Insights page's "Area" chart |
 | GET | `/api/insights/average-price-by-remaining-lease` | Average price grouped by remaining lease (whole years) — powers the Insights page's remaining lease chart |
 | GET | `/api/insights/average-price-by-storey-range` | Average price grouped by storey range — powers the Insights page's storey range chart |
+| GET | `/api/insights/average-price-by-town-and-flat-type` | Average price grouped by town and flat type — powers the Insights page's Town × Flat Type heatmap |
 | GET | `/api/insights/by-town` | Average price and count, grouped by town |
 | GET | `/api/insights/by-flat-type` | Average price and count, grouped by flat type |
 | POST | `/api/admin/ingest` | Manually trigger a full re-ingest from data.gov.sg |
@@ -302,7 +306,7 @@ full design, variables, and what's deliberately out of scope.
 - **Some early Insights endpoints are no longer called by the frontend.**
   `/api/insights/summary`, `/api/insights/price-trend`, and
   `/api/insights/by-flat-type` predate the current Insights page design (a
-  left-nav across Towns/Flat Types/Remain Lease/Storey Range/Area, each rendered as its own
+  left-nav across Towns/Flat Types/Remain Lease/Storey Range/Town × Flat Type/Area, each rendered as its own
   chart) and accept a single `town`/`flatType` filter rather than the
   multi-select lists the transaction listing supports. Kept rather than
   deleted — they're still correct, tested, general-purpose aggregate

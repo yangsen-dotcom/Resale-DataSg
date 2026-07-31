@@ -200,6 +200,24 @@ class InsightsRepositoryTest {
     }
 
     @Test
+    void averagePriceByTownAndFlatTypeGroupsByBothDimensions() {
+        var byTownAndFlatType = insightsRepository.averagePriceByTownAndFlatType();
+
+        assertThat(byTownAndFlatType).hasSize(3);
+        assertThat(byTownAndFlatType.get(0).getTown()).isEqualTo("BEDOK");
+        assertThat(byTownAndFlatType.get(0).getFlatType()).isEqualTo("3 ROOM");
+        assertThat(byTownAndFlatType.get(0).getAveragePrice()).isEqualByComparingTo(new BigDecimal("300000"));
+        assertThat(byTownAndFlatType.get(0).getTransactionCount()).isEqualTo(1);
+        assertThat(byTownAndFlatType.get(1).getTown()).isEqualTo("BEDOK");
+        assertThat(byTownAndFlatType.get(1).getFlatType()).isEqualTo("4 ROOM");
+        assertThat(byTownAndFlatType.get(1).getAveragePrice()).isEqualByComparingTo(new BigDecimal("150000"));
+        assertThat(byTownAndFlatType.get(1).getTransactionCount()).isEqualTo(2);
+        assertThat(byTownAndFlatType.get(2).getTown()).isEqualTo("TAMPINES");
+        assertThat(byTownAndFlatType.get(2).getFlatType()).isEqualTo("4 ROOM");
+        assertThat(byTownAndFlatType.get(2).getAveragePrice()).isEqualByComparingTo(new BigDecimal("400000"));
+    }
+
+    @Test
     void averagePriceByTownRanksDescending() {
         var byTown = insightsRepository.averagePriceByTown(null, null, null);
 

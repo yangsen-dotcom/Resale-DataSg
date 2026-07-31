@@ -15,6 +15,7 @@ import sg.datasg.resale.insights.dto.RemainingLeasePriceResponse;
 import sg.datasg.resale.insights.dto.StoreyRangePriceResponse;
 import sg.datasg.resale.insights.dto.SummaryStatsResponse;
 import sg.datasg.resale.insights.dto.TownAveragePriceResponse;
+import sg.datasg.resale.insights.dto.TownFlatTypeAveragePriceResponse;
 import sg.datasg.resale.insights.dto.TownMaxPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMedianPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
@@ -97,6 +98,11 @@ public class InsightsController {
     @GetMapping("/average-price-by-storey-range")
     public List<StoreyRangePriceResponse> averagePriceByStoreyRange() {
         return insightsService.averagePriceByStoreyRange();
+    }
+
+    @GetMapping("/average-price-by-town-and-flat-type")
+    public List<TownFlatTypeAveragePriceResponse> averagePriceByTownAndFlatType() {
+        return insightsService.averagePriceByTownAndFlatType();
     }
 
     @GetMapping("/by-town")

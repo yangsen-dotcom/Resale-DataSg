@@ -1,0 +1,193 @@
+.wrapper {
+  position: relative;
+  border: 1px solid var(--border, #e2e2e2);
+  border-radius: var(--radius-lg, 12px);
+  padding: 0.75rem;
+  background: var(--chart-surface, #fcfcfb);
+
+  /* Sequential blue ramp (steps 100-700), low -> high magnitude. */
+  --heat-0: #cde2fb;
+  --heat-1: #b7d3f6;
+  --heat-2: #9ec5f4;
+  --heat-3: #86b6ef;
+  --heat-4: #6da7ec;
+  --heat-5: #5598e7;
+  --heat-6: #3987e5;
+  --heat-7: #2a78d6;
+  --heat-8: #256abf;
+  --heat-9: #1c5cab;
+  --heat-10: #184f95;
+  --heat-11: #104281;
+  --heat-12: #0d366b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme='light'])) .wrapper {
+    /* Same ramp, reversed: low values recede toward the dark surface, high values pop bright. */
+    --heat-0: #0d366b;
+    --heat-1: #104281;
+    --heat-2: #184f95;
+    --heat-3: #1c5cab;
+    --heat-4: #256abf;
+    --heat-5: #2a78d6;
+    --heat-6: #3987e5;
+    --heat-7: #5598e7;
+    --heat-8: #6da7ec;
+    --heat-9: #86b6ef;
+    --heat-10: #9ec5f4;
+    --heat-11: #b7d3f6;
+    --heat-12: #cde2fb;
+  }
+}
+
+:root[data-theme='dark'] .wrapper {
+  --heat-0: #0d366b;
+  --heat-1: #104281;
+  --heat-2: #184f95;
+  --heat-3: #1c5cab;
+  --heat-4: #256abf;
+  --heat-5: #2a78d6;
+  --heat-6: #3987e5;
+  --heat-7: #5598e7;
+  --heat-8: #6da7ec;
+  --heat-9: #86b6ef;
+  --heat-10: #9ec5f4;
+  --heat-11: #b7d3f6;
+  --heat-12: #cde2fb;
+}
+
+.description {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #52514e);
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: separate;
+  border-spacing: 2px;
+  width: 100%;
+}
+
+.caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.cornerHeader {
+  background: var(--chart-surface, #fcfcfb);
+}
+
+.colHeader {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #898781);
+  padding: 0.35rem 0.4rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.rowHeader {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #52514e);
+  padding: 0.3rem 0.6rem 0.3rem 0.2rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cell {
+  min-width: 44px;
+  height: 26px;
+  border-radius: 4px;
+  cursor: default;
+}
+
+.cell:hover,
+.cell:focus-visible {
+  outline: 2px solid var(--text-primary, #0b0b0b);
+  outline-offset: -2px;
+}
+
+.emptyCell {
+  min-width: 44px;
+  height: 26px;
+  border-radius: 4px;
+  background: var(--gridline, #e1e0d9);
+  color: var(--text-muted, #898781);
+  font-size: 11px;
+  text-align: center;
+}
+
+.scale {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.scaleGradient {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(
+    to right,
+    var(--heat-0),
+    var(--heat-1),
+    var(--heat-2),
+    var(--heat-3),
+    var(--heat-4),
+    var(--heat-5),
+    var(--heat-6),
+    var(--heat-7),
+    var(--heat-8),
+    var(--heat-9),
+    var(--heat-10),
+    var(--heat-11),
+    var(--heat-12)
+  );
+}
+
+.scaleLabel {
+  font-size: 11px;
+  color: var(--text-muted, #898781);
+  white-space: nowrap;
+}
+
+.tooltip {
+  position: absolute;
+  background: var(--chart-surface, #fcfcfb);
+  border: 1px solid var(--border, #e2e2e2);
+  border-radius: 6px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.76rem;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+}
+
+.tooltipHeader {
+  font-weight: 700;
+  color: var(--text-primary, #0b0b0b);
+  margin-bottom: 0.2rem;
+}
+
+.tooltipPrice {
+  color: var(--text-primary, #0b0b0b);
+  font-weight: 600;
+}
+
+.tooltipCount {
+  color: var(--text-muted, #898781);
+}
+
+.empty {
+  color: var(--text-muted, #898781);
+  font-size: 0.85rem;
+}

@@ -114,6 +114,14 @@ export const handlers = [
     ])
   }),
 
+  http.get(`${API_BASE_URL}/api/insights/average-price-by-town-and-flat-type`, () => {
+    return HttpResponse.json([
+      { town: 'BEDOK', flatType: '3 ROOM', averagePrice: 380000, transactionCount: 1200 },
+      { town: 'BEDOK', flatType: '4 ROOM', averagePrice: 498000, transactionCount: 900 },
+      { town: 'TAMPINES', flatType: '4 ROOM', averagePrice: 470000, transactionCount: 700 },
+    ])
+  }),
+
   http.get(`${API_BASE_URL}/api/insights/by-town`, () => {
     return HttpResponse.json([{ town: 'BEDOK', averagePrice: 498000, transactionCount: 5230 }])
   }),

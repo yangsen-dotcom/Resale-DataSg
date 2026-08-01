@@ -114,6 +114,24 @@ describe('InsightsPage', () => {
     expect(screen.queryByRole('button', { name: 'All' })).not.toBeInTheDocument()
   })
 
+  it('switches to the Wealth Index chart when that nav item is clicked, with a per-town legend', async () => {
+    renderWithProviders(<InsightsPage />)
+
+    await screen.findByRole('button', { name: 'BEDOK' })
+    await userEvent.click(screen.getByRole('button', { name: 'Wealth Index' }))
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('img', { name: /million-dollar resale transaction count comparison between towns/i }),
+      ).toBeInTheDocument(),
+    )
+    const bedok = screen.getByRole('button', { name: 'BEDOK' })
+    expect(bedok).toHaveAttribute('aria-pressed', 'true')
+
+    await userEvent.click(bedok)
+    expect(bedok).toHaveAttribute('aria-pressed', 'false')
+  })
+
   it('switches the Towns chart to the highest price view via the metric toggle', async () => {
     renderWithProviders(<InsightsPage />)
 

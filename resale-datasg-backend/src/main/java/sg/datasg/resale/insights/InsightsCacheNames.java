@@ -23,13 +23,14 @@ public final class InsightsCacheNames {
     public static final String AVERAGE_PRICE_BY_TOWN = "insights-averagePriceByTown";
     public static final String AVERAGE_PRICE_BY_FLAT_TYPE = "insights-averagePriceByFlatType";
     public static final String AVERAGE_PRICE_BY_TOWN_AND_FLAT_TYPE = "insights-averagePriceByTownAndFlatType";
+    public static final String WEALTH_INDEX_BY_TOWN = "insights-wealthIndexByTown";
 
     public static final List<String> ALL = List.of(
         SUMMARY, PRICE_TREND, PRICE_TREND_BY_TOWN, PRICE_TREND_BY_FLAT_TYPE,
         MAX_PRICE_TREND_BY_TOWN, MIN_PRICE_TREND_BY_TOWN, MEDIAN_PRICE_TREND_BY_TOWN,
         PRICE_PER_SQM_TREND_BY_TOWN, AREA_TREND, AVERAGE_PRICE_BY_REMAINING_LEASE,
         AVERAGE_PRICE_BY_STOREY_RANGE, AVERAGE_PRICE_BY_TOWN, AVERAGE_PRICE_BY_FLAT_TYPE,
-        AVERAGE_PRICE_BY_TOWN_AND_FLAT_TYPE);
+        AVERAGE_PRICE_BY_TOWN_AND_FLAT_TYPE, WEALTH_INDEX_BY_TOWN);
 
     private InsightsCacheNames() {
     }

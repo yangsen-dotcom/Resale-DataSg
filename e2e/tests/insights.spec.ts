@@ -29,6 +29,12 @@ test('switches through every comparison dimension', async ({ page }) => {
   await expect(page.getByRole('columnheader', { name: '3 ROOM' })).toBeVisible()
   await expect(page.getByRole('rowheader', { name: 'BEDOK' })).toBeVisible()
 
+  await nav.getByRole('button', { name: 'Wealth Index' }).click()
+  await expect(
+    page.getByRole('img', { name: /million-dollar resale transaction count comparison between towns/i }),
+  ).toBeVisible()
+  await expect(page.getByRole('button', { name: 'BEDOK' })).toHaveAttribute('aria-pressed', 'true')
+
   await nav.getByRole('button', { name: 'Area' }).click()
   await expect(page.getByRole('img', { name: /median floor area by month/i })).toBeVisible()
 

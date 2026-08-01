@@ -27,6 +27,7 @@ import sg.datasg.resale.insights.dto.TownMedianPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPricePerSqmTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.WealthIndexResponse;
 
 @WebMvcTest(InsightsController.class)
 class InsightsControllerTest {
@@ -245,6 +246,22 @@ class InsightsControllerTest {
             .andExpect(jsonPath("$[0].flatType").value("3 ROOM"))
             .andExpect(jsonPath("$[0].averagePrice").value(380000.00))
             .andExpect(jsonPath("$[1].flatType").value("4 ROOM"));
+    }
+
+    @Test
+    void wealthIndexByTownReturnsPerTownPerYearCounts() throws Exception {
+        when(insightsService.wealthIndexByTown()).thenReturn(List.of(
+            new WealthIndexResponse("BUKIT TIMAH", "2020", 12, 40, new BigDecimal("30.00")),
+            new WealthIndexResponse("BUKIT TIMAH", "2021", 15, 42, new BigDecimal("35.71"))));
+
+        mockMvc.perform(get("/api/insights/wealth-index-by-town"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].town").value("BUKIT TIMAH"))
+            .andExpect(jsonPath("$[0].period").value("2020"))
+            .andExpect(jsonPath("$[0].millionDollarCount").value(12))
+            .andExpect(jsonPath("$[0].totalTransactionCount").value(40))
+            .andExpect(jsonPath("$[0].millionDollarSharePercent").value(30.00))
+            .andExpect(jsonPath("$[1].period").value("2021"));
     }
 
     @Test

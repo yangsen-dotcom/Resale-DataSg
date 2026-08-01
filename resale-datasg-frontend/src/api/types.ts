@@ -87,6 +87,14 @@ export interface TownAveragePriceResponse {
   transactionCount: number
 }
 
+export interface WealthIndexResponse {
+  town: string
+  period: string
+  millionDollarCount: number
+  totalTransactionCount: number
+  millionDollarSharePercent: number
+}
+
 export interface TownFlatTypeAveragePriceResponse {
   town: string
   flatType: string

@@ -183,6 +183,18 @@ export async function mockApi(page: Page) {
       ],
     }),
   )
+  await page.route('**/api/insights/wealth-index-by-town**', (route) =>
+    route.fulfill({
+      json: [
+        { town: 'ANG MO KIO', period: '2022', millionDollarCount: 1, totalTransactionCount: 2800, millionDollarSharePercent: 0.04 },
+        { town: 'ANG MO KIO', period: '2023', millionDollarCount: 2, totalTransactionCount: 3000, millionDollarSharePercent: 0.07 },
+        { town: 'BEDOK', period: '2022', millionDollarCount: 3, totalTransactionCount: 5000, millionDollarSharePercent: 0.06 },
+        { town: 'BEDOK', period: '2023', millionDollarCount: 5, totalTransactionCount: 5230, millionDollarSharePercent: 0.1 },
+        { town: 'TAMPINES', period: '2022', millionDollarCount: 4, totalTransactionCount: 3900, millionDollarSharePercent: 0.1 },
+        { town: 'TAMPINES', period: '2023', millionDollarCount: 6, totalTransactionCount: 4100, millionDollarSharePercent: 0.15 },
+      ],
+    }),
+  )
   await page.route('**/api/insights/by-town**', (route) =>
     route.fulfill({
       json: [

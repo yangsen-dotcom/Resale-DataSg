@@ -21,6 +21,7 @@ import sg.datasg.resale.insights.dto.TownMedianPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPricePerSqmTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.WealthIndexResponse;
 
 @RestController
 @RequestMapping("/api/insights")
@@ -103,6 +104,11 @@ public class InsightsController {
     @GetMapping("/average-price-by-town-and-flat-type")
     public List<TownFlatTypeAveragePriceResponse> averagePriceByTownAndFlatType() {
         return insightsService.averagePriceByTownAndFlatType();
+    }
+
+    @GetMapping("/wealth-index-by-town")
+    public List<WealthIndexResponse> wealthIndexByTown() {
+        return insightsService.wealthIndexByTown();
     }
 
     @GetMapping("/by-town")

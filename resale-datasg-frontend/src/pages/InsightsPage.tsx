@@ -20,12 +20,13 @@ import {
   usePricePerSqmTrendByTown,
   usePriceTrendByFlatType,
   usePriceTrendByTown,
+  useWealthIndexByTown,
 } from '../hooks/useInsights'
 import { buildColorScale } from '../components/insights/seriesColors'
 import { CURRENCY_COMPACT, NUMBER_COMPACT } from '../components/insights/chartUtils'
 import styles from './InsightsPage.module.css'
 
-type Dimension = 'town' | 'flatType' | 'remainingLease' | 'storeyRange' | 'townFlatType' | 'area'
+type Dimension = 'town' | 'flatType' | 'remainingLease' | 'storeyRange' | 'townFlatType' | 'wealthIndex' | 'area'
 type MetricOption = 'average' | 'highest' | 'lowest' | 'median' | 'count' | 'psm'
 
 const METRIC_LABEL: Record<MetricOption, string> = {
@@ -63,6 +64,7 @@ const DIMENSION_LABEL: Record<Dimension, string> = {
   remainingLease: 'Remain Lease',
   storeyRange: 'Storey Range',
   townFlatType: 'Town × Flat Type',
+  wealthIndex: 'Wealth Index',
   area: 'Area',
 }
 
@@ -85,6 +87,7 @@ export function InsightsPage() {
   const isRemainingLease = dimension === 'remainingLease'
   const isStoreyRange = dimension === 'storeyRange'
   const isHeatmap = dimension === 'townFlatType'
+  const isWealthIndex = dimension === 'wealthIndex'
   const isArea = dimension === 'area'
 
   const townsQuery = useTowns()
@@ -101,6 +104,7 @@ export function InsightsPage() {
   const remainingLeaseQuery = useAveragePriceByRemainingLease(isRemainingLease)
   const storeyRangeQuery = useAveragePriceByStoreyRange(isStoreyRange)
   const heatmapQuery = useAveragePriceByTownAndFlatType(isHeatmap)
+  const wealthIndexQuery = useWealthIndexByTown(isWealthIndex)
   const areaTrendQuery = useAreaTrend('month', isArea)
 
   const keysQuery = dimension === 'flatType' ? flatTypesQuery : townsQuery
@@ -118,6 +122,7 @@ export function InsightsPage() {
               : townTrendQuery
 
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set())
+  const [wealthVisibleTowns, setWealthVisibleTowns] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (isCategorical && keysQuery.data) {
@@ -125,8 +130,32 @@ export function InsightsPage() {
     }
   }, [isCategorical, keysQuery.data, dimension])
 
+  useEffect(() => {
+    if (isWealthIndex && townsQuery.data) {
+      setWealthVisibleTowns(new Set(townsQuery.data))
+    }
+  }, [isWealthIndex, townsQuery.data])
+
   const colorScale = useMemo(() => buildColorScale(keysQuery.data ?? []), [keysQuery.data])
   const colorForKey = (key: string) => colorScale.get(key) ?? '#888888'
+
+  const wealthChartData: ComparisonPoint[] = useMemo(
+    () =>
+      wealthIndexQuery.data?.map((d) => ({ key: d.town, period: d.period, price: d.millionDollarCount })) ?? [],
+    [wealthIndexQuery.data],
+  )
+
+  function toggleWealthTown(key: string) {
+    setWealthVisibleTowns((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
+  }
 
   const chartData: ComparisonPoint[] = useMemo(() => {
     if (dimension === 'town') {
@@ -262,6 +291,35 @@ export function InsightsPage() {
       ]
     }
 
+    if (isWealthIndex) {
+      const visible = wealthChartData.filter((d) => wealthVisibleTowns.has(d.key))
+      if (visible.length === 0) {
+        return []
+      }
+      const latestPeriod = visible.reduce((max, d) => (d.period > max ? d.period : max), visible[0].period)
+      const latestPoints = visible.filter((d) => d.period === latestPeriod)
+      const highest = latestPoints.reduce((a, b) => (b.price > a.price ? b : a))
+      const total = latestPoints.reduce((sum, d) => sum + d.price, 0)
+      const yearsTracked = new Set(wealthChartData.map((d) => d.period)).size
+      return [
+        {
+          label: 'Highest',
+          value: NUMBER_COMPACT.format(highest.price),
+          sublabel: `${highest.key} · ${latestPeriod}`,
+        },
+        {
+          label: 'Total',
+          value: NUMBER_COMPACT.format(total),
+          sublabel: `million-dollar flats sold, ${latestPeriod}`,
+        },
+        {
+          label: 'Years tracked',
+          value: NUMBER_COMPACT.format(yearsTracked),
+          sublabel: 'of resale transaction data',
+        },
+      ]
+    }
+
     const points = remainingLeaseQuery.data ?? []
     if (points.length === 0) {
       return []
@@ -295,9 +353,12 @@ export function InsightsPage() {
     isArea,
     isStoreyRange,
     isHeatmap,
+    isWealthIndex,
     remainingLeaseQuery.data,
     storeyRangeQuery.data,
     heatmapQuery.data,
+    wealthChartData,
+    wealthVisibleTowns,
     areaTrendQuery.data,
   ])
 
@@ -327,7 +388,9 @@ export function InsightsPage() {
         ? storeyRangeQuery.isLoading
         : isHeatmap
           ? heatmapQuery.isLoading
-          : remainingLeaseQuery.isLoading
+          : isWealthIndex
+            ? wealthIndexQuery.isLoading || townsQuery.isLoading
+            : remainingLeaseQuery.isLoading
   const isReady = isCategorical
     ? keysQuery.isSuccess && trendQuery.isSuccess
     : isArea
@@ -336,7 +399,9 @@ export function InsightsPage() {
         ? storeyRangeQuery.isSuccess
         : isHeatmap
           ? heatmapQuery.isSuccess
-          : remainingLeaseQuery.isSuccess
+          : isWealthIndex
+            ? wealthIndexQuery.isSuccess && townsQuery.isSuccess
+            : remainingLeaseQuery.isSuccess
 
   return (
     <div>
@@ -354,6 +419,11 @@ export function InsightsPage() {
             'Compare average resale price across storey ranges.'
           ) : isHeatmap ? (
             'Compare average resale price across every town and flat type combination.'
+          ) : isWealthIndex ? (
+            <>
+              Compare how many resale flats sold for over $1,000,000 each year, across towns — click a town to show
+              or hide it.
+            </>
           ) : (
             'Compare average resale price against how many years remain on the flat’s lease.'
           )}
@@ -378,6 +448,12 @@ export function InsightsPage() {
           message="Failed to load town / flat type data."
           onRetry={() => heatmapQuery.refetch()}
         />
+      )}
+      {!isCategorical && isWealthIndex && townsQuery.isError && (
+        <ErrorState message="Failed to load towns." onRetry={() => townsQuery.refetch()} />
+      )}
+      {!isCategorical && isWealthIndex && wealthIndexQuery.isError && (
+        <ErrorState message="Failed to load wealth index data." onRetry={() => wealthIndexQuery.refetch()} />
       )}
       {!isCategorical && isArea && areaTrendQuery.isError && (
         <ErrorState message="Failed to load area data." onRetry={() => areaTrendQuery.refetch()} />
@@ -456,6 +532,26 @@ export function InsightsPage() {
                 data={heatmapQuery.data ?? []}
                 description="Resale Prices: Average price by town and flat type."
               />
+            ) : isWealthIndex ? (
+              <>
+                <ComparisonLineChart
+                  data={wealthChartData}
+                  visibleKeys={wealthVisibleTowns}
+                  colorForKey={colorForKey}
+                  description="Wealth Index: Number of resale transactions over $1,000,000 per year, for each selected town."
+                  ariaLabel="Million-dollar resale transaction count comparison between towns"
+                  valueFormat="count"
+                />
+                <ComparisonLegend
+                  title="Towns"
+                  keys={townsQuery.data ?? []}
+                  visibleKeys={wealthVisibleTowns}
+                  colorForKey={colorForKey}
+                  onToggleKey={toggleWealthTown}
+                  onShowAll={() => setWealthVisibleTowns(new Set(townsQuery.data))}
+                  onHideAll={() => setWealthVisibleTowns(new Set())}
+                />
+              </>
             ) : (
               <RemainingLeaseChart
                 data={remainingLeaseQuery.data ?? []}

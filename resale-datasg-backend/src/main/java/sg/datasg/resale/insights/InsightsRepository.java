@@ -188,6 +188,21 @@ public interface InsightsRepository extends Repository<ResaleTransaction, Long> 
     @Query(nativeQuery = true, value = """
         SELECT
           town AS town,
+          to_char(bucket, 'YYYY') AS period,
+          count(*) FILTER (WHERE resale_price > 1000000) AS millionDollarCount,
+          count(*) AS totalTransactionCount
+        FROM (
+          SELECT town, date_trunc('year', month) AS bucket, resale_price
+          FROM resale_transaction
+        ) bucketed
+        GROUP BY town, bucket
+        ORDER BY town, bucket
+        """)
+    List<WealthIndexProjection> wealthIndexByTown();
+
+    @Query(nativeQuery = true, value = """
+        SELECT
+          town AS town,
           avg(resale_price) AS averagePrice,
           count(*) AS transactionCount
         FROM resale_transaction

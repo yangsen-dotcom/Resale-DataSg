@@ -218,6 +218,36 @@ class InsightsRepositoryTest {
     }
 
     @Test
+    void wealthIndexByTownGroupsByTownAndYearAcrossTheWholeDataset() {
+        transactionRepository.save(row("2020-01", "BUKIT TIMAH", "5 ROOM", "1200000"));
+        transactionRepository.save(row("2020-06", "BUKIT TIMAH", "5 ROOM", "1500000"));
+        transactionRepository.save(row("2020-03", "BUKIT TIMAH", "4 ROOM", "900000"));
+        transactionRepository.save(row("2021-01", "BUKIT TIMAH", "5 ROOM", "1100000"));
+
+        var wealthIndex = insightsRepository.wealthIndexByTown();
+
+        var bt2020 = wealthIndex.stream()
+            .filter(p -> p.getTown().equals("BUKIT TIMAH") && p.getPeriod().equals("2020"))
+            .findFirst().orElseThrow();
+        assertThat(bt2020.getMillionDollarCount()).isEqualTo(2);
+        assertThat(bt2020.getTotalTransactionCount()).isEqualTo(3);
+
+        var bt2021 = wealthIndex.stream()
+            .filter(p -> p.getTown().equals("BUKIT TIMAH") && p.getPeriod().equals("2021"))
+            .findFirst().orElseThrow();
+        assertThat(bt2021.getMillionDollarCount()).isEqualTo(1);
+        assertThat(bt2021.getTotalTransactionCount()).isEqualTo(1);
+
+        // The shared @BeforeEach seed (2023, all under $1,000,000) shows up too, with a
+        // zero million-dollar count - this endpoint covers every year in the dataset.
+        var bedok2023 = wealthIndex.stream()
+            .filter(p -> p.getTown().equals("BEDOK") && p.getPeriod().equals("2023"))
+            .findFirst().orElseThrow();
+        assertThat(bedok2023.getMillionDollarCount()).isEqualTo(0);
+        assertThat(bedok2023.getTotalTransactionCount()).isEqualTo(3);
+    }
+
+    @Test
     void averagePriceByTownRanksDescending() {
         var byTown = insightsRepository.averagePriceByTown(null, null, null);
 

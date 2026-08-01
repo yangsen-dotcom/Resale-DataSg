@@ -75,7 +75,7 @@ The Insights chart endpoints are additionally cached in Redis (see
   filters, a comma-formatted price range, a month range picker, a table sortable
   on all 9 relevant columns (click a header to sort, click again to reverse), a
   page-size selector, and a "go to page" input alongside standard pagination.
-- **Insights** (`/insights`) — a left-hand nav across six comparison
+- **Insights** (`/insights`) — a left-hand nav across seven comparison
   dimensions: **Towns** (Average/Highest/Lowest/Median Price, Transaction Count,
   and Price per SQM, toggled via a pill control, each rendered as one line per
   town with a click-to-show/hide legend), **Flat Types** (Average Price /
@@ -83,10 +83,12 @@ The Insights chart endpoints are additionally cached in Redis (see
   bucket), **Storey Range** (average price by storey-range bucket, e.g. "01 TO
   03"), **Town × Flat Type** (a heatmap grid of average price across both
   dimensions at once, sequential-blue color scale, sorted by each town's
-  overall average so the priciest towns lead), and **Area** (median floor area
-  by month). Every chart shows highest/lowest/average summary stat tiles above
-  it, and the line/area charts have a cursor-following tooltip while the
-  heatmap has a per-cell hover tooltip.
+  overall average so the priciest towns lead), **Wealth Index** (a multi-line
+  chart — same interaction as Towns — comparing how many resale flats sold for
+  over $1,000,000 per year, per town, across the whole dataset), and **Area**
+  (median floor area by month). Every chart shows highest/lowest/average
+  summary stat tiles above it, and the line/area charts have a cursor-following
+  tooltip while the heatmap has a per-cell hover tooltip.
 - **Map** (`/map`) — a Leaflet map with a marker per town (positioned at
   approximate real-world centroids, see `src/data/townCoordinates.ts`); clicking
   a town (or picking one from the dropdown) reveals its blocks, and picking a
@@ -194,6 +196,7 @@ reference. Summary:
 | GET | `/api/insights/average-price-by-remaining-lease` | Average price grouped by remaining lease (whole years) — powers the Insights page's remaining lease chart |
 | GET | `/api/insights/average-price-by-storey-range` | Average price grouped by storey range — powers the Insights page's storey range chart |
 | GET | `/api/insights/average-price-by-town-and-flat-type` | Average price grouped by town and flat type — powers the Insights page's Town × Flat Type heatmap |
+| GET | `/api/insights/wealth-index-by-town` | Count (and share) of resale transactions over $1,000,000 per year, grouped by town, across the whole dataset — powers the Insights page's Wealth Index chart |
 | GET | `/api/insights/by-town` | Average price and count, grouped by town |
 | GET | `/api/insights/by-flat-type` | Average price and count, grouped by flat type |
 | POST | `/api/admin/ingest` | Manually trigger a full re-ingest from data.gov.sg |
@@ -301,7 +304,7 @@ mocked at the network boundary (`e2e/fixtures/api.ts`, same response shapes as
 the frontend's own MSW handlers), so no backend, Postgres, Redis, or network
 access to data.gov.sg is required; `playwright.config.ts`'s `webServer` builds
 and serves the frontend automatically. Covers the three pages end to end:
-Explore (filter, sort, paginate), Insights (all six comparison dimensions),
+Explore (filter, sort, paginate), Insights (all seven comparison dimensions),
 and Map (town → block → transactions drill-down). `npm run test:e2e:ui` opens
 Playwright's interactive UI mode; `npm run test:e2e:headed` runs with a
 visible browser window.
@@ -333,7 +336,7 @@ full design, variables, and what's deliberately out of scope.
 - **Some early Insights endpoints are no longer called by the frontend.**
   `/api/insights/summary`, `/api/insights/price-trend`, and
   `/api/insights/by-flat-type` predate the current Insights page design (a
-  left-nav across Towns/Flat Types/Remain Lease/Storey Range/Town × Flat Type/Area, each rendered as its own
+  left-nav across Towns/Flat Types/Remain Lease/Storey Range/Town × Flat Type/Wealth Index/Area, each rendered as its own
   chart) and accept a single `town`/`flatType` filter rather than the
   multi-select lists the transaction listing supports. Kept rather than
   deleted — they're still correct, tested, general-purpose aggregate

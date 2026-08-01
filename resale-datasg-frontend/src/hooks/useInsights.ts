@@ -11,6 +11,7 @@ import {
   getPricePerSqmTrendByTown,
   getPriceTrendByFlatType,
   getPriceTrendByTown,
+  getWealthIndexByTown,
   type InsightsFilterParams,
 } from '../api/insights'
 
@@ -99,6 +100,15 @@ export function useAveragePriceByTownAndFlatType(enabled = true) {
   return useQuery({
     queryKey: ['insights', 'average-price-by-town-and-flat-type'],
     queryFn: getAveragePriceByTownAndFlatType,
+    staleTime: 10 * 60 * 1000,
+    enabled,
+  })
+}
+
+export function useWealthIndexByTown(enabled = true) {
+  return useQuery({
+    queryKey: ['insights', 'wealth-index-by-town'],
+    queryFn: getWealthIndexByTown,
     staleTime: 10 * 60 * 1000,
     enabled,
   })

@@ -24,6 +24,7 @@ import sg.datasg.resale.insights.dto.TownMedianPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownMinPriceTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPricePerSqmTrendPointResponse;
 import sg.datasg.resale.insights.dto.TownPriceTrendPointResponse;
+import sg.datasg.resale.insights.dto.WealthIndexResponse;
 
 /**
  * The {@code @Cacheable} methods here deliberately collect into {@link ArrayList}
@@ -193,6 +194,23 @@ public class InsightsService {
             .map(p -> new FlatTypeAveragePriceResponse(p.getFlatType(), round(p.getAveragePrice()),
                 p.getTransactionCount()))
             .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    @Cacheable(InsightsCacheNames.WEALTH_INDEX_BY_TOWN)
+    public List<WealthIndexResponse> wealthIndexByTown() {
+        return repository.wealthIndexByTown().stream()
+            .map(p -> new WealthIndexResponse(p.getTown(), p.getPeriod(), p.getMillionDollarCount(),
+                p.getTotalTransactionCount(), sharePercent(p.getMillionDollarCount(), p.getTotalTransactionCount())))
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private BigDecimal sharePercent(long numerator, long denominator) {
+        if (denominator == 0) {
+            return BigDecimal.ZERO;
+        }
+        return BigDecimal.valueOf(numerator)
+            .multiply(BigDecimal.valueOf(100))
+            .divide(BigDecimal.valueOf(denominator), 2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal round(BigDecimal value) {

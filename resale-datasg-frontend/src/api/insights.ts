@@ -11,6 +11,7 @@ import type {
   TownMinPriceTrendPointResponse,
   TownPricePerSqmTrendPointResponse,
   TownPriceTrendPointResponse,
+  WealthIndexResponse,
 } from './types'
 
 export interface InsightsFilterParams {
@@ -60,6 +61,10 @@ export function getAveragePriceByStoreyRange(): Promise<StoreyRangePriceResponse
 
 export function getAveragePriceByTownAndFlatType(): Promise<TownFlatTypeAveragePriceResponse[]> {
   return fetchJson<TownFlatTypeAveragePriceResponse[]>('/api/insights/average-price-by-town-and-flat-type')
+}
+
+export function getWealthIndexByTown(): Promise<WealthIndexResponse[]> {
+  return fetchJson<WealthIndexResponse[]>('/api/insights/wealth-index-by-town')
 }
 
 export function getByTown(
